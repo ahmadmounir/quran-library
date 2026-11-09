@@ -5,7 +5,8 @@
 This guide shows how to build a mushaf that looks exactly like the printed Madinah mushaf (the one Quran.com and
 Tarteel show), with every word on its own, eight reciters in sync with the text, offline reading on phones, and free
 hosting on Cloudflare. Everything here is what we built and run in production. The data is in this repository, and
-the example in [`example/`](../../example) is a working app in plain JavaScript that you can read in an hour.
+the example in [`example/`](../../example) is the mushaf of our Hafiz platform as a small app of its own: an open
+book with a 3D page turn on a computer, one page at a time on a phone, eight reciters, day and night, offline.
 
 If you work with an AI coding assistant, give it [`AGENTS.md`](../../AGENTS.md) (or the skill in
 [`skills/quran-mushaf/`](../../skills/quran-mushaf/SKILL.md)): it describes the whole system for it.
@@ -34,6 +35,7 @@ data/
   mushaf/
     mushaf_index.json      the page of every ayah, and the juz / hizb of every page
     chapters.json          the 114 surahs (names, number of ayat, first and last page)
+    search_text.json       the plain text of every ayah, for search
     pages/page-001.json …  604 pages: lines, and the words of each line
   fonts/
     pages/p1.woff2 …       604 page fonts (one per page, ~160 KB each, 93 MB in all)
@@ -44,7 +46,7 @@ data/
 tools/
   audio/                   build the reciters' page files (MP3) from the ayah recordings
   cloudflare/              upload to R2, and the Worker that serves the files
-example/                   a complete app: pages, word by word, audio, offline
+example/                   the mushaf app (React + Vite): open book, phone, reciters, settings, offline
 docs/                      this guide in Arabic, English and Turkish
 AGENTS.md                  everything an AI assistant needs to build it for you
 skills/quran-mushaf/       the same, as a Claude Code skill
@@ -73,14 +75,22 @@ published, so phones and Cloudflare keep them for a year.
 
 ## 3. Run the example
 
-You need any static web server. From the repository's folder:
+The example is the mushaf of the Hafiz app as one small app (React + Vite + Tailwind), with nothing of Hafiz's
+accounts or server. You need Node 20+. From the repository's folder:
 
 ```bash
-npx serve .
+cd example
+npm install
+npm run dev
 ```
 
-or `python -m http.server 8000`. Open `http://localhost:3000/example/` (or `:8000/example/`). The mushaf works at once,
-from the repository's own `data/` folder. Swipe (or use the arrows) to turn pages; tap a word to see it.
+![The example on a computer: the open book at Al-Fatihah and Al-Baqarah, pages 1 and 2](../images/desktop-book.jpg)
+
+Open `http://localhost:5175`. The dev server serves the repository's own `data/` folder at `/data`, so the mushaf
+works at once. On a computer it opens as a book of two pages (the arrows, ← / →, or drag a page to turn it); on a
+phone, swipe one page at a time, or turn the phone sideways and scroll. Tap the page to show the bars; hold a word to
+hear its ayah alone or share it as a picture; the gear opens the settings (day / night / automatic, the page colour,
+the language …).
 
 **Audio** needs the MP3 files, which are not in git. Either build one reciter (about an hour, see
 [7.2](#72-building-the-audio-files)):
@@ -89,7 +99,11 @@ from the repository's own `data/` folder. Swipe (or use the arrows) to turn page
 node tools/audio/build-reciter.mjs husary
 ```
 
-or point the example at audio you already host: `example/index.html?audio=https://your-worker.workers.dev/v1/audio`.
+or point the example at audio you host yourself: create `example/.env.local` with
+`VITE_AUDIO_BASE=https://your-worker.workers.dev/v1/audio` and start it again.
+
+`npm run build` writes the app to `example/dist/`: static files for any host (point it at your files with
+`VITE_FILES_BASE`, see [8.7](#87-point-the-app-at-it)).
 
 ## 4. The data files
 
@@ -150,7 +164,7 @@ Pages 1 and 2 have fewer, shorter lines; draw them centered and a little larger,
 - `fonts/pages/p{N}.woff2` — the font of page N. Register it under a family name of your choice (we use `qcf-v2-pN`)
   and draw the page's `g` codes with it. **Never modify these files.**
 - `fonts/surah-header.woff2` — one glyph per surah: the frame with «سورة …» inside. The code point of each surah's
-  glyph is the table `SURAH_HEADER_CODES` in [`example/js/fonts.js`](../../example/js/fonts.js) (surah 1 = U+FC45).
+  glyph is the table `SURAH_HEADER_CODES` in [`mushafFonts.ts`](../../example/src/mushaf/utils/mushafFonts.ts) (surah 1 = U+FC45).
 
 ### 4.5 Audio
 
@@ -179,7 +193,9 @@ Al-Dosari, Mishary Rashid Alafasy, Abdul Basit Abdul Samad, Ali Jaber — all mu
 
 ## 5. Drawing a page, word by word
 
-The code is [`example/js/page.js`](../../example/js/page.js) and [`example/style.css`](../../example/style.css).
+The code is [`QuranPageView.tsx`](../../example/src/mushaf/components/QuranPageView.tsx) and the `.mushaf-*` rules of
+[`styles/index.css`](../../example/src/styles/index.css) (there the classes below are `mushaf-page-card`, `mushaf-line`,
+`mushaf-word` …).
 
 ### 5.1 The structure
 
@@ -238,7 +254,7 @@ const face = await new FontFace("qcf-v2-p3", "url(…/fonts/pages/p3.woff2)", { 
 document.fonts.add(face);
 ```
 
-Rules that keep it fast and cheap (all in [`example/js/fonts.js`](../../example/js/fonts.js)):
+Rules that keep it fast and cheap (all in [`mushafFonts.ts`](../../example/src/mushaf/utils/mushafFonts.ts)):
 
 1. **Draw a page only once its fonts are loaded.** The glyph codes mean nothing in another font — show an empty page
    (placeholder lines) meanwhile, never the codes. `display: "block"` guarantees that.
@@ -246,11 +262,13 @@ Rules that keep it fast and cheap (all in [`example/js/fonts.js`](../../example/
    farther than one page away wait until the reader comes near.
 3. **Keep the last 24 fonts**, remove older ones from `document.fonts` (decoded fonts take memory).
 4. A page with a basmala also needs page 1's font; a page with a surah header needs the header font.
+5. A font already kept on the device (the service worker's cache, or the whole-mushaf download) is read straight
+   from that cache into the `FontFace` as an `ArrayBuffer`: no request at all, online or not.
 
 ### 5.4 The rare line that is too wide
 
 On a few pages, at some sizes, one line is a hair wider than the page. After drawing, measure each line once and
-shrink only that line ([`fitLines`](../../example/js/page.js)):
+shrink only that line ([`useQcfLineFit`](../../example/src/mushaf/hooks/useQcfLineFit.ts)):
 
 ```js
 const ratio = sumOfWordWidths / line.width;
@@ -274,19 +292,26 @@ of the one before and after it. Turning a page then shows it at once.
 Every word on screen carries everything about itself:
 
 ```html
-<span class="word" data-location="2:255:3" data-word-id="…" data-text="ٱللَّهُ">ﱆ</span>
+<span class="word" data-location="2:255:3" data-word-id="…" aria-label="ٱللَّهُ">ﱆ</span>
 ```
 
-- **Tap a word**: read `data-location` and `data-text` (see the click handler in [`example/js/app.js`](../../example/js/app.js)).
+- **Hold a word**: read `data-location`; the word's own text is its `aria-label` (screen readers read it too). The
+  example picks the ayah after 450 ms (moving 8 px cancels it, so a swipe never picks) and offers to hear it alone
+  or share it as a picture ([`QuranPageView.tsx`](../../example/src/mushaf/components/QuranPageView.tsx),
+  [`AyahActionsSheet.tsx`](../../example/src/mushaf/components/AyahActionsSheet.tsx), the picture: [`ayahImage.ts`](../../example/src/mushaf/utils/ayahImage.ts)).
 - **Highlight a whole ayah** without re-drawing anything — one CSS rule:
 
   ```js
   style.textContent = `.word[data-location^="2:255:"] { background: … }`;
   ```
 
-  (`^=` "starts with": `2:255:` matches every word of 2:255, never 2:25.)
+  (`^=` "starts with": `2:255:` matches every word of 2:255, never 2:25.) The example draws the ayah being
+  recited as **one flat band per line** instead ([`ayahBands.ts`](../../example/src/mushaf/audio/ayahBands.ts)): the words of a
+  line are spread edge to edge, so a background per word would leave holes between them.
 - **Mark a word** (memorization mistakes, notes, bookmarks): store the word `id` or its location.
-- **Search**: search the `text` of the words (remove the harakat first for a forgiving search).
+- **Search**: `data/mushaf/search_text.json` has the plain text of every ayah. Bring the text and what is typed to
+  the same form first — no harakat, every alef one alef, ى / ي, ة / ه, hamza on its carrier
+  ([`arabicSearch.ts`](../../example/src/lib/arabicSearch.ts)) — and every word typed must be found, in any order.
 
 ## 7. The reciters' audio
 
@@ -327,8 +352,8 @@ isti'adha, so his basmala starts 7 s into it).
 
 ### 7.3 Playing in sync with the page
 
-The code is [`example/js/audio-queue.js`](../../example/js/audio-queue.js) and
-[`example/js/audio-player.js`](../../example/js/audio-player.js). The idea:
+The code is [`audioQueue.ts`](../../example/src/mushaf/audio/audioQueue.ts) and
+[`audioPlayer.ts`](../../example/src/mushaf/audio/audioPlayer.ts). The idea:
 
 1. **The play list.** "From 2:5 to the end of the surah" becomes a list of items
    `{ page file, surah, ayah, startMs, endMs }`, read from the reciter's `index.json` (with the basmala item before
@@ -424,9 +449,10 @@ requests never reach R2.
 
 ### 8.7 Point the app at it
 
-In the example, `FILES_BASE` in [`example/js/config.js`](../../example/js/config.js) is the address of `v1`
-(e.g. `https://quran-files.you.workers.dev/v1`); the audio is `FILES_BASE + "/audio"` unless `AUDIO_BASE` says
-otherwise. For a quick test: `example/index.html?files=https://…/v1`.
+In the example the address is `VITE_FILES_BASE` (in `example/.env.local`, or your build's environment; read by
+[`src/config.ts`](../../example/src/config.ts)): the address of `v1`, e.g. `https://quran-files.you.workers.dev/v1`. The audio is
+`VITE_FILES_BASE + "/audio"` unless `VITE_AUDIO_BASE` says otherwise. Without them the app reads `/data`, where
+the dev server serves the repository's `data/` folder. Build with the address set: `npm run build`.
 
 ## 9. Caching on phones and staying free
 
@@ -438,15 +464,17 @@ does not even ask the server again.
 
 ### 9.2 A service worker: the mushaf offline
 
-[`example/sw.js`](../../example/sw.js):
+[`example/public/sw.js`](../../example/public/sw.js) (registered in a production build):
 
 - page files, the index and the fonts: **cache first** — after the first visit, a page is drawn with no network at all;
 - the app's own files (HTML, CSS, JS): **network first**, the stored copy when offline;
 - audio: not stored by the service worker (big files, Range requests); the browser's own HTTP cache keeps them, and the
   player downloads the next page in the background.
 
-Want a page available offline before it is read? Fetch its page file and font once (e.g. a "download the mushaf"
-button that walks through the 604 pages slowly) — the service worker keeps what passes through it.
+The whole mushaf before it is read? The example's offline sheet (at the foot of the index, or Settings → "The
+mushaf offline") downloads all 604 pages with their fonts (~103 MB) **only when the reader asks**: its size first,
+4 files at a time, stop and continue, remove; and, if the reader wants, a check every two weeks or every month that
+completes what the browser cleared ([`mushaf/offline`](../../example/src/mushaf/offline)). Nothing downloads by itself.
 
 ### 9.3 Cloudflare's own cache
 
@@ -473,8 +501,11 @@ and ±1 font, never the whole book at once; immutable files; a service worker.
 
 ## 10. Putting it into your own app
 
-The example is plain JavaScript on purpose: the same pieces work in React, Vue, Svelte, Flutter (WebView), or a
-native app.
+The example is a React app because our own platform is one, but the parts that matter are plain modules you can lift
+into any framework (Vue, Svelte, plain JavaScript, Flutter in a WebView): the fonts and their queue
+(`utils/mushafFonts.ts`), the page files (`hooks/usePageData.ts`), the play list and the player
+(`audio/audioQueue.ts`, `audio/audioPlayer.ts`), the band's geometry (`audio/ayahBands.ts`), the book's spreads and
+the turn's angles (`utils/bookSpreads.ts`), the search (`lib/arabicSearch.ts`).
 
 - **React**: a `<QuranPage page={n} />` component that loads the page file and its fonts (render the placeholder
   until both are ready), the fonts module as a plain module (it keeps its own queue), and `fitLines` in a
@@ -484,6 +515,24 @@ native app.
   on each side are mounted).
 - **Native apps**: the page file + font approach works the same (register the font file, draw the `g` codes with
   it); for audio use the platform's player and the same `index.json`.
+
+### What the example does, and where
+
+Paths under [`example/src/`](../../example/src):
+
+| What | Where |
+|---|---|
+| The open book on a computer: two pages at the spine, the 3D turn, drag, ← / → | `mushaf/components/MushafBookView.tsx`, `mushaf/utils/bookSpreads.ts` |
+| A phone: one page per swipe, or every page in one scroll | `mushaf/MushafPage.tsx` (Swiper), `mushaf/components/MushafScrollView.tsx` |
+| A phone held sideways: the pages across the screen, the hizb quarters | `mushaf/components/MushafLandscapeView.tsx`, `mushaf/utils/hizbQuarters.ts` |
+| The header, the index (surahs, juz, bookmarks) | `mushaf/components/MushafHeader.tsx`, `mushaf/components/MushafIndexScreen.tsx` |
+| Search: ayat and surah names | `mushaf/components/SearchDialog.tsx`, `lib/arabicSearch.ts` |
+| Reciters: the listen sheet, the player bar, the ayah band, the lock screen | `mushaf/audio/` |
+| Hold an ayah: hear it alone, share it as a picture | `mushaf/components/AyahActionsSheet.tsx`, `mushaf/utils/ayahImage.ts` |
+| Bookmarks, kept on the device | `mushaf/utils/bookmarks.ts` |
+| Settings: day / night / automatic, page colour, page turn, screen on, reciter, language | `settings/` |
+| Offline: the service worker, the whole-mushaf download | `../public/sw.js`, `mushaf/offline/` |
+| The mark «صوت المصحف» (bars of a reciting voice, the gold spine) | `brand/` |
 
 **With an AI assistant**: open your project in Claude Code (or another agent), copy this repository's `AGENTS.md`
 next to it or install the skill (`skills/quran-mushaf/` into your `.claude/skills/`), and ask: "Add the mushaf to my
@@ -500,6 +549,7 @@ app following AGENTS.md". It knows the data, the rules above and the checks to r
 | Audio does not start on iPhone | the browser wants a tap | start playing inside the tap; show "paused" on `NotAllowedError` |
 | Old data after an update | files were overwritten while phones keep them a year | never overwrite: publish into a new folder |
 | A burst of requests per page | one file per ayah, or prefetching too much | one file per page; prefetch ±2 / ±1 |
+| The example shows "could not load" | the dev server is not the example's own, or `VITE_FILES_BASE` is wrong | run `npm run dev` in `example/`; check the address in `example/.env.local` |
 | Rebuilding the page data from QUL | QUL splits «بَعْدَ مَا» into two words in 2:181, 8:6 and 13:37 | keep one word with both glyphs (our data does) |
 
 ## 12. Thanks

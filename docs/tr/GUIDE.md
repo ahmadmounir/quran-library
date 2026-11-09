@@ -5,8 +5,9 @@
 Bu rehber, basılı Medine Mushafının (Quran.com ve Tarteel'in gösterdiği Mushaf) birebir aynısı görünen bir Mushafın
 nasıl yapılacağını anlatır: her kelime ayrı bir öğe, metinle eş zamanlı sekiz kâri, telefonlarda çevrimdışı okuma ve
 Cloudflare'de ücretsiz barındırma. Buradaki her şey, bizim kurduğumuz ve canlı ortamda çalıştırdığımız sistemdir.
-Veriler bu depoda. [`example/`](../../example) klasöründeki örnek ise düz JavaScript ile yazılmış, çalışan bir
-uygulamadır ve bir saatte okunabilir.
+Veriler bu depoda. [`example/`](../../example) klasöründeki örnek ise Hafiz platformumuzun Mushafının kendi başına
+küçük bir uygulama hâlidir: bilgisayarda 3B sayfa çevirmeli açık bir kitap, telefonda sayfa sayfa okuma, sekiz kâri,
+gündüz ve gece modu, çevrimdışı.
 
 Bir yapay zekâ kodlama asistanıyla çalışıyorsanız ona [`AGENTS.md`](../../AGENTS.md) dosyasını (ya da
 [`skills/quran-mushaf/`](../../skills/quran-mushaf/SKILL.md) içindeki beceriyi) verin: bütün sistemi ona anlatır.
@@ -35,6 +36,7 @@ data/
   mushaf/
     mushaf_index.json      her ayetin sayfası, her sayfanın cüzü / hizbi
     chapters.json          114 sure (adları, ayet sayısı, ilk ve son sayfa)
+    search_text.json       her ayetin harekesiz metni, arama için
     pages/page-001.json …  604 sayfa: satırlar ve her satırın kelimeleri
   fonts/
     pages/p1.woff2 …       604 sayfa fontu (her sayfaya bir tane, her biri ~160 KB, toplam 93 MB)
@@ -45,7 +47,7 @@ data/
 tools/
   audio/                   kârilerin sayfa dosyalarını (MP3) ayet kayıtlarından oluşturur
   cloudflare/              R2'ye yükleme ve dosyaları sunan Worker
-example/                   eksiksiz bir uygulama: sayfalar, kelime kelime, ses, çevrimdışı
+example/                   Mushaf uygulaması (React + Vite): açık kitap, telefon, kâriler, ayarlar, çevrimdışı
 docs/                      bu rehber: Arapça, İngilizce ve Türkçe
 AGENTS.md                  bir yapay zekâ asistanının bunu sizin için kurması için gereken her şey
 skills/quran-mushaf/       aynısı, bir Claude Code becerisi (skill) olarak
@@ -74,15 +76,22 @@ durur. Dosyalar yayımlandıktan sonra hiç değişmez; bu yüzden telefonlar ve
 
 ## 3. Örneği çalıştırın
 
-Herhangi bir statik web sunucusu yeterli. Deponun klasöründe:
+Örnek, Hafiz uygulamasının Mushafıdır; tek bir küçük uygulama olarak (React + Vite + Tailwind), Hafiz'in hesapları ve
+sunucusu olmadan. Node 20 veya üstü gerekir. Deponun klasöründe:
 
 ```bash
-npx serve .
+cd example
+npm install
+npm run dev
 ```
 
-ya da `python -m http.server 8000`. `http://localhost:3000/example/` adresini (veya `:8000/example/`) açın. Mushaf,
-deponun kendi `data/` klasöründen hemen çalışır. Sayfa çevirmek için kaydırın (ya da ok tuşlarını kullanın); bir
-kelimeyi görmek için ona dokunun.
+![Bilgisayarda örnek: Fâtiha ve Bakara'da açık kitap, 1. ve 2. sayfalar](../images/desktop-book.jpg)
+
+`http://localhost:5175` adresini açın. Geliştirme sunucusu deponun kendi `data/` klasörünü `/data` adresinde sunar;
+Mushaf hemen çalışır. Bilgisayarda iki sayfalı bir kitap olarak açılır (oklar, ← / → ya da sayfayı sürükleyerek
+çevirin); telefonda sayfa sayfa kaydırın ya da telefonu yan çevirip sayfaları aşağı kaydırın. Çubukları göstermek
+için sayfaya dokunun; bir kelimeye basılı tutarak ayetini tek başına dinleyin ya da resim olarak paylaşın; dişli
+düğmesi ayarları açar (gündüz / gece / otomatik, sayfa rengi, dil …).
 
 **Ses** için git'te bulunmayan MP3 dosyaları gerekir. Ya bir kâriyi kendiniz oluşturun (yaklaşık bir saat, bkz.
 [7.2](#72-ses-dosyalarını-oluşturmak)):
@@ -91,7 +100,11 @@ kelimeyi görmek için ona dokunun.
 node tools/audio/build-reciter.mjs husary
 ```
 
-ya da örneği zaten barındırdığınız seslere yönlendirin: `example/index.html?audio=https://your-worker.workers.dev/v1/audio`.
+ya da örneği kendi barındırdığınız seslere yönlendirin: `example/.env.local` dosyasını oluşturup içine
+`VITE_AUDIO_BASE=https://your-worker.workers.dev/v1/audio` yazın ve yeniden başlatın.
+
+`npm run build` uygulamayı `example/dist/` klasörüne yazar: her barındırmaya uygun statik dosyalar (dosyalarınızın
+adresini `VITE_FILES_BASE` ile verin, bkz. [8.7](#87-uygulamayı-buraya-yönlendirin)).
 
 ## 4. Veri dosyaları
 
@@ -153,7 +166,7 @@ Sayfa 1 ve 2'de satırlar daha az ve daha kısadır; bunları baskıdaki gibi or
 - `fonts/pages/p{N}.woff2` — N. sayfanın fontu. Dilediğiniz bir aile adıyla kaydedin (biz `qcf-v2-pN` kullanıyoruz)
   ve sayfanın `g` kodlarını bu fontla çizin. **Bu dosyaları asla değiştirmeyin.**
 - `fonts/surah-header.woff2` — her sure için bir glif: içinde «سورة …» yazan çerçeve. Her surenin glifinin kod
-  noktası, [`example/js/fonts.js`](../../example/js/fonts.js) içindeki `SURAH_HEADER_CODES` tablosundadır
+  noktası, [`mushafFonts.ts`](../../example/src/mushaf/utils/mushafFonts.ts) içindeki `SURAH_HEADER_CODES` tablosundadır
   (1. sure = U+FC45).
 
 ### 4.5 Ses
@@ -183,7 +196,8 @@ ed-Devseri, Mişari Raşid el-Afasi, Abdülbasit Abdüssamed, Ali Cabir. Hepsi t
 
 ## 5. Sayfayı kelime kelime çizmek
 
-Kod: [`example/js/page.js`](../../example/js/page.js) ve [`example/style.css`](../../example/style.css).
+Kod: [`QuranPageView.tsx`](../../example/src/mushaf/components/QuranPageView.tsx) ve [`styles/index.css`](../../example/src/styles/index.css)
+içindeki `.mushaf-*` kuralları (aşağıdaki sınıfların oradaki adları `mushaf-page-card`, `mushaf-line`, `mushaf-word` …).
 
 ### 5.1 Yapı
 
@@ -245,7 +259,7 @@ const face = await new FontFace("qcf-v2-p3", "url(…/fonts/pages/p3.woff2)", { 
 document.fonts.add(face);
 ```
 
-Hızlı ve ucuz kalmasını sağlayan kurallar (hepsi [`example/js/fonts.js`](../../example/js/fonts.js) içinde):
+Hızlı ve ucuz kalmasını sağlayan kurallar (hepsi [`mushafFonts.ts`](../../example/src/mushaf/utils/mushafFonts.ts) içinde):
 
 1. **Bir sayfayı ancak fontları yüklendikten sonra çizin.** Glif kodları başka bir fontta hiçbir anlam taşımaz. Bu
    arada kodları değil, boş bir sayfa (yer tutucu satırlar) gösterin. `display: "block"` bunu garanti eder.
@@ -253,11 +267,13 @@ Hızlı ve ucuz kalmasını sağlayan kurallar (hepsi [`example/js/fonts.js`](..
    Bir sayfadan daha uzaktaki sayfalar, okuyucu yaklaşana kadar bekler.
 3. **Son 24 fontu tutun**, daha eskileri `document.fonts` içinden kaldırın (çözümlenmiş fontlar bellek kaplar).
 4. Besmele bulunan bir sayfa 1. sayfanın fontuna da ihtiyaç duyar; sure başlığı bulunan bir sayfa da başlık fontuna.
+5. Cihazda zaten saklanan bir font (service worker'ın önbelleği ya da Mushafın tamamını indirme) doğrudan o
+   önbellekten `ArrayBuffer` olarak `FontFace`'e okunur: internet olsun olmasın, hiç istek gitmez.
 
 ### 5.4 Fazla geniş gelen nadir satır
 
 Birkaç sayfada, bazı boyutlarda, bir satır sayfadan kıl payı daha geniş olur. Çizdikten sonra her satırı bir kez
-ölçün ve yalnızca o satırı küçültün ([`fitLines`](../../example/js/page.js)):
+ölçün ve yalnızca o satırı küçültün ([`useQcfLineFit`](../../example/src/mushaf/hooks/useQcfLineFit.ts)):
 
 ```js
 const ratio = sumOfWordWidths / line.width;
@@ -282,20 +298,27 @@ hemen önceki ve hemen sonraki sayfanın fontlarını da kuyruğa ekleyin. Böyl
 Ekrandaki her kelime, kendisiyle ilgili her şeyi üzerinde taşır:
 
 ```html
-<span class="word" data-location="2:255:3" data-word-id="…" data-text="ٱللَّهُ">ﱆ</span>
+<span class="word" data-location="2:255:3" data-word-id="…" aria-label="ٱللَّهُ">ﱆ</span>
 ```
 
-- **Bir kelimeye dokunma**: `data-location` ve `data-text` değerlerini okuyun (bkz.
-  [`example/js/app.js`](../../example/js/app.js) içindeki tıklama işleyicisi).
+- **Bir kelimeye basılı tutma**: `data-location` değerini okuyun; kelimenin kendi metni `aria-label` içindedir (ekran
+  okuyucular da onu okur). Örnek, ayeti 450 ms sonra seçer (parmağın 8 piksel kayması bunu iptal eder, böylece bir
+  kaydırma hiçbir şey seçmez) ve onu tek başına dinlemeyi ya da resim olarak paylaşmayı önerir
+  ([`QuranPageView.tsx`](../../example/src/mushaf/components/QuranPageView.tsx),
+  [`AyahActionsSheet.tsx`](../../example/src/mushaf/components/AyahActionsSheet.tsx), resim: [`ayahImage.ts`](../../example/src/mushaf/utils/ayahImage.ts)).
 - **Bütün bir ayeti vurgulama**, hiçbir şeyi yeniden çizmeden — tek bir CSS kuralıyla:
 
   ```js
   style.textContent = `.word[data-location^="2:255:"] { background: … }`;
   ```
 
-  (`^=` "ile başlar" demektir: `2:255:` 2:255'in her kelimesiyle eşleşir, 2:25 ile asla.)
+  (`^=` "ile başlar" demektir: `2:255:` 2:255'in her kelimesiyle eşleşir, 2:25 ile asla.) Örnek ise okunan ayeti
+  **her satırda tek, düz bir şerit** olarak çizer ([`ayahBands.ts`](../../example/src/mushaf/audio/ayahBands.ts)): satırın kelimeleri
+  bir uçtan öbür uca yayıldığı için kelime başına bir arka plan aralarda boşluk bırakır.
 - **Bir kelimeyi işaretleme** (ezber hataları, notlar, yer imleri): kelimenin `id` değerini ya da konumunu saklayın.
-- **Arama**: kelimelerin `text` alanında arayın (daha esnek bir arama için önce harekeleri kaldırın).
+- **Arama**: `data/mushaf/search_text.json` her ayetin harekesiz metnini içerir. Önce metni ve yazılanı aynı biçime
+  getirin — hareke yok, her elif tek elif, ى / ي, ة / ه, hemze taşıyıcısında
+  ([`arabicSearch.ts`](../../example/src/lib/arabicSearch.ts)) — sonra yazılan her kelime, sırası ne olursa olsun bulunmalı.
 
 ## 7. Kârilerin sesi
 
@@ -338,8 +361,8 @@ istiâze ile başlar, bu yüzden besmelesi dosyanın 7. saniyesinde başlar).
 
 ### 7.3 Sayfayla eş zamanlı çalmak
 
-Kod: [`example/js/audio-queue.js`](../../example/js/audio-queue.js) ve
-[`example/js/audio-player.js`](../../example/js/audio-player.js). Fikir şu:
+Kod: [`audioQueue.ts`](../../example/src/mushaf/audio/audioQueue.ts) ve
+[`audioPlayer.ts`](../../example/src/mushaf/audio/audioPlayer.ts). Fikir şu:
 
 1. **Çalma listesi.** "2:5'ten surenin sonuna kadar" isteği, kârinin `index.json` dosyasından okunan
    `{ page file, surah, ayah, startMs, endMs }` öğelerinden oluşan bir listeye dönüşür (gereken yerlerde 1. ayetten
@@ -444,9 +467,11 @@ isteklerin çoğu R2'ye hiç ulaşmaz.
 
 ### 8.7 Uygulamayı buraya yönlendirin
 
-Örnekte, [`example/js/config.js`](../../example/js/config.js) içindeki `FILES_BASE`, `v1` klasörünün adresidir
-(ör. `https://quran-files.you.workers.dev/v1`). `AUDIO_BASE` başka bir adres vermedikçe ses adresi
-`FILES_BASE + "/audio"` olur. Hızlı bir deneme için: `example/index.html?files=https://…/v1`.
+Örnekte adres `VITE_FILES_BASE` değişkenidir (`example/.env.local` dosyasında ya da derlemenin ortamında;
+[`src/config.ts`](../../example/src/config.ts) okur): `v1` klasörünün adresi, ör. `https://quran-files.you.workers.dev/v1`.
+`VITE_AUDIO_BASE` başka bir adres vermedikçe ses adresi `VITE_FILES_BASE + "/audio"` olur. İkisi de yoksa
+uygulama `/data` adresini okur; geliştirme sunucusu deponun `data/` klasörünü orada sunar. Adres verilmişken
+derleyin: `npm run build`.
 
 ## 9. Telefonlarda önbellek ve ücretsiz kalmak
 
@@ -458,7 +483,7 @@ kullanılabilir: telefon dosyayı bir yıl saklar ve sunucuya bir daha sormaz bi
 
 ### 9.2 Service worker: çevrimdışı Mushaf
 
-[`example/sw.js`](../../example/sw.js):
+[`example/public/sw.js`](../../example/public/sw.js) (yalnızca üretim derlemesinde kaydedilir):
 
 - sayfa dosyaları, indeks ve fontlar: **önce önbellek (cache first)** — ilk ziyaretten sonra bir sayfa hiç ağ
   olmadan çizilir;
@@ -466,8 +491,10 @@ kullanılabilir: telefon dosyayı bir yıl saklar ve sunucuya bir daha sormaz bi
 - ses: service worker tarafından saklanmaz (büyük dosyalar, Range istekleri). Bunları tarayıcının kendi HTTP
   önbelleği tutar; oynatıcı da sonraki sayfayı arka planda indirir.
 
-Bir sayfanın, okunmadan önce çevrimdışı kullanılabilir olmasını mı istiyorsunuz? Sayfa dosyasını ve fontunu bir kez
-indirin (ör. 604 sayfayı yavaş yavaş dolaşan bir "Mushafı indir" düğmesi). Service worker içinden geçeni saklar.
+Mushafın tamamı, okunmadan önce mi? Örneğin "İnternetsiz Mushaf" penceresi (fihristin altında ya da Ayarlar →
+"İnternetsiz Mushaf") 604 sayfayı fontlarıyla birlikte (~103 MB) **yalnızca okuyucu istediğinde** indirir: önce
+boyutu, aynı anda 4 dosya, durdurma ve sürdürme, silme; okuyucu isterse de tarayıcının sildiklerini tamamlayan iki
+haftada ya da ayda bir kontrol ([`mushaf/offline`](../../example/src/mushaf/offline)). Hiçbir şey kendiliğinden inmez.
 
 ### 9.3 Cloudflare'in kendi önbelleği
 
@@ -495,8 +522,11 @@ service worker.
 
 ## 10. Kendi uygulamanıza eklemek
 
-Örnek bilerek düz JavaScript ile yazıldı: aynı parçalar React, Vue, Svelte, Flutter (WebView) ya da yerel (native)
-bir uygulamada da çalışır.
+Örnek bir React uygulamasıdır, çünkü kendi platformumuz öyle; ama önemli parçalar her çatıya (Vue, Svelte, düz
+JavaScript, WebView içinde Flutter) taşıyabileceğiniz düz modüllerdir: fontlar ve kuyrukları
+(`utils/mushafFonts.ts`), sayfa dosyaları (`hooks/usePageData.ts`), çalma listesi ve oynatıcı
+(`audio/audioQueue.ts`, `audio/audioPlayer.ts`), şeridin geometrisi (`audio/ayahBands.ts`), kitabın sayfa çiftleri
+ve çevirme açıları (`utils/bookSpreads.ts`), arama (`lib/arabicSearch.ts`).
 
 - **React**: sayfa dosyasını ve fontlarını yükleyen bir `<QuranPage page={n} />` bileşeni (ikisi de hazır olana kadar
   yer tutucuyu gösterin); düz bir modül olarak font modülü (kendi kuyruğunu kendisi yönetir); sayfa çizildikten sonra
@@ -506,6 +536,24 @@ bir uygulamada da çalışır.
   yalnızca geçerli sayfa ve iki yanındaki birer sayfa DOM'a yerleştirilir (mount).
 - **Yerel uygulamalar**: sayfa dosyası + font yaklaşımı aynı şekilde çalışır (font dosyasını kaydedin, `g` kodlarını
   onunla çizin). Ses için platformun kendi oynatıcısını ve aynı `index.json` dosyasını kullanın.
+
+### Örnek neler yapar, nerede
+
+Yollar [`example/src/`](../../example/src) altındadır:
+
+| Ne | Nerede |
+|---|---|
+| Bilgisayarda açık kitap: sırtta iki sayfa, 3B çevirme, sürükleme, ← / → | `mushaf/components/MushafBookView.tsx`, `mushaf/utils/bookSpreads.ts` |
+| Telefon: her kaydırmada bir sayfa ya da tüm sayfalar tek bir akışta | `mushaf/MushafPage.tsx` (Swiper), `mushaf/components/MushafScrollView.tsx` |
+| Yan çevrilmiş telefon: ekran genişliğinde sayfalar, hizb çeyrekleri | `mushaf/components/MushafLandscapeView.tsx`, `mushaf/utils/hizbQuarters.ts` |
+| Üst çubuk, fihrist (sureler, cüzler, yer imleri) | `mushaf/components/MushafHeader.tsx`, `mushaf/components/MushafIndexScreen.tsx` |
+| Arama: ayetler ve sure adları | `mushaf/components/SearchDialog.tsx`, `lib/arabicSearch.ts` |
+| Kâriler: dinleme penceresi, oynatıcı çubuğu, ayet şeridi, kilit ekranı | `mushaf/audio/` |
+| Bir ayete basılı tutma: tek başına dinleme, resim olarak paylaşma | `mushaf/components/AyahActionsSheet.tsx`, `mushaf/utils/ayahImage.ts` |
+| Cihazda saklanan yer imleri | `mushaf/utils/bookmarks.ts` |
+| Ayarlar: gündüz / gece / otomatik, sayfa rengi, sayfa çevirme, ekranı açık tutma, kâri, dil | `settings/` |
+| Çevrimdışı: service worker, Mushafın tamamını indirme | `../public/sw.js`, `mushaf/offline/` |
+| «صوت المصحف» işareti (okuyan bir sesin çubukları, altın sırt) | `brand/` |
 
 **Bir yapay zekâ asistanıyla**: projenizi Claude Code'da (ya da başka bir ajanda) açın. Bu deponun `AGENTS.md`
 dosyasını projenizin yanına kopyalayın ya da beceriyi kurun (`skills/quran-mushaf/` klasörünü `.claude/skills/`
@@ -523,6 +571,7 @@ yapılması gereken kontrolleri bilir.
 | iPhone'da ses başlamıyor | tarayıcı önce bir dokunuş istiyor | çalmayı dokunuşun içinde başlatın; `NotAllowedError` gelince "duraklatıldı" gösterin |
 | Güncellemeden sonra eski veriler | dosyaların üzerine yazıldı, telefonlar ise onları bir yıl saklıyor | asla üzerine yazmayın: yeni bir klasöre yayımlayın |
 | Sayfa başına bir istek yağmuru | ayet başına bir dosya ya da gereğinden fazla önceden indirme | sayfa başına tek dosya; ±2 / ±1 önceden indirme |
+| Örnek "Mushaf yüklenemedi" diyor | sunucu örneğin kendi sunucusu değil ya da `VITE_FILES_BASE` yanlış | `example/` içinde `npm run dev` çalıştırın; `example/.env.local` içindeki adresi kontrol edin |
 | Sayfa verilerini QUL'dan yeniden oluşturmak | QUL, 2:181, 8:6 ve 13:37'de «بَعْدَ مَا» ifadesini iki kelimeye böler | her iki glifiyle tek bir kelime olarak tutun (bizim verilerimiz böyle yapar) |
 
 ## 12. Teşekkür

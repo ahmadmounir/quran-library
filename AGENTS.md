@@ -3,7 +3,9 @@
 Instructions for AI coding assistants (Claude Code, Codex, Cursor, Copilot …). Follow them to add a mushaf to a
 user's app: the 1421H Madinah print drawn with the King Fahd Complex page fonts (as on Quran.com / Tarteel), word by
 word, with reciters' audio in sync, offline caching, and free Cloudflare hosting. The human guide is
-`docs/en/GUIDE.md` (also `docs/ar`, `docs/tr`); the reference implementation is `example/` (plain JavaScript).
+`docs/en/GUIDE.md` (also `docs/ar`, `docs/tr`); the reference implementation is `example/`: the mushaf of the Hafiz
+platform as a small Vite + React + Tailwind app (open book on a computer, phone pages, reciters, settings, offline),
+whose core modules are framework-free (§1).
 
 **Scope.** Only the mushaf: pages, fonts, words, audio, hosting, caching. No accounts, backend, or memorization
 tracking unless the user asks for them separately.
@@ -13,13 +15,22 @@ tracking unless the user asks for them separately.
 | Path | Content |
 |---|---|
 | `data/mushaf/mushaf_index.json` | `{ pageInfo: [[firstSurah, juz, hizb] per page], ayahPages: { "<surah>": [page of each ayah] } }` |
+| `data/mushaf/search_text.json` | 6,236 × `{ id, verse_key: "s:a", text_plain }`: the plain text of every ayah, for search |
 | `data/mushaf/chapters.json` | 114 × `{ id, name_arabic, name_simple, verses_count, bismillah_pre, pages: [first, last], … }` |
 | `data/mushaf/pages/page-NNN.json` | 604 pages (NNN = 001…604), format in §2 |
 | `data/fonts/pages/p{N}.woff2` | page fonts, N = 1…604 (no padding), ~160 KB each |
-| `data/fonts/surah-header.woff2` | surah frames; code points in `example/js/fonts.js` (`SURAH_HEADER_CODES`) |
+| `data/fonts/surah-header.woff2` | surah frames; code points in `example/src/mushaf/utils/mushafFonts.ts` (`SURAH_HEADER_CODES`) |
 | `data/audio/reciters.json` | `{ v, reciters: [{ id, name: { ar, en, tr }, style, path: "<id>/" }] }` |
 | `data/audio/<id>/index.json` | timing index per reciter, §5; the MP3s are NOT in git (built by `tools/audio`) |
-| `example/js/*.js` | reference modules: `config`, `data`, `fonts`, `page`, `audio-queue`, `audio-player`, `app`; `example/sw.js` |
+| `example/src/config.ts` | the one setting: `FILES_BASE` (`VITE_FILES_BASE`, default `/data`) and `AUDIO_BASE` |
+| `example/src/mushaf/utils/mushafFonts.ts` | the font queue (framework-free): load, LRU, the surah frame glyphs |
+| `example/src/mushaf/utils/mushafData.ts`, `hooks/usePageData.ts` | page files (LRU cache), index, search corpus |
+| `example/src/mushaf/components/QuranPageView.tsx`, `hooks/useQcfLineFit.ts` | one page drawn; the line fit |
+| `example/src/mushaf/audio/audioQueue.ts`, `audioPlayer.ts`, `ayahBands.ts` | play list, the player (framework-free), the ayah band |
+| `example/src/mushaf/utils/bookSpreads.ts`, `components/MushafBookView.tsx` | the open book: spreads, the 3D turn |
+| `example/src/mushaf/components/MushafLandscapeView.tsx`, `utils/hizbQuarters.ts` | a phone held sideways; hizb quarters |
+| `example/src/settings/` | the reader's settings (day / night / auto, page colour, …), kept in localStorage |
+| `example/public/sw.js` | the service worker |
 | `tools/audio/build-reciter.mjs <id…\|all>` | downloads the recordings from EveryAyah and builds `data/audio/<id>/p001.mp3…p604.mp3` (Node 20+, ffmpeg) — see §5.1 |
 | `tools/cloudflare/upload-r2.mjs <dir> <prefix>` | uploads to R2 (keys in `.env`, see `.env.example`) |
 | `tools/cloudflare/files-worker.js` | Worker serving the bucket (binding `FILES`, folders `v1/`) |
@@ -68,7 +79,8 @@ type Page = { page: number; script: "qcf-v2"; lines: Line[] };
 - A page needs: its own font; page 1's font if it has a `basmala` line; the header font if it has a `header` line.
 - Queue: nearest page to the reader first, at most **2** concurrent, pages farther than **1** from the reader wait.
 - Keep at most **24** fonts registered (LRU); `document.fonts.delete` the evicted ones.
-- Copy `example/js/fonts.js` rather than rewriting it.
+- A font already in the cache (`quran-libary-fonts-v1`) is read from it as an `ArrayBuffer`: no request.
+- Copy `example/src/mushaf/utils/mushafFonts.ts` rather than rewriting it (the open book asks for a radius of 3).
 
 ## 5. Audio (must follow)
 
@@ -76,13 +88,15 @@ Index: `{ v, rate, kbps, pages: { "<page>": { ms, bytes, ayat: [[surah, ayah, st
 before ayah 1 (never surahs 1 and 9). An ayah ends at the next entry's `startMs`, the last at `ms`. Files:
 `<AUDIO_BASE>/<reciter.path>p001.mp3` (3-digit page).
 
-- Build the play list with `buildQueue(index, { from, to })` (`example/js/audio-queue.js`): the page FILE of an ayah
+- Build the play list with `buildQueue(index, { from, to })` (`example/src/mushaf/audio/audioQueue.ts`): the page FILE of an ayah
   comes from the reciter's index, never from the mushaf index.
-- Player (`example/js/audio-player.js`, copy it): one `<audio>`; `src` = page file (stream), seek to `startMs`;
+- Player (`example/src/mushaf/audio/audioPlayer.ts`, copy it): one `<audio>`; `src` = page file (stream), seek to `startMs`;
   `timeupdate` + a timer at the ayah's end; contiguous next ayah in the same file → only move the highlight; repeat =
   seek; other page → new `src`; 3 s after a page starts, `fetch()` the next needed page into a Blob URL (keep 4);
   retry a failed load once after 1.5 s; `NotAllowedError` → "paused".
-- Highlight the current ayah with one CSS rule `.word[data-location^="S:A:"]` (no re-render).
+- Highlight the current ayah without re-rendering the page: the example draws ONE flat band per line from its first
+  word to its last, joined across the gap to the next line (`example/src/mushaf/audio/ayahBands.ts`); the simplest
+  alternative is one CSS rule `.word[data-location^="S:A:"]`.
 - Turn to `pageOfAyah(mushafIndex, item)` when it differs from the page shown.
 - Media Session metadata + play / pause / previoustrack / nexttrack handlers.
 - RTL UI: "next ayah" on the LEFT, skip icons mirrored; next PAGE is also on the left, swipe right = next page.
@@ -131,25 +145,49 @@ Never commit the MP3s, never point a production app at someone else's Worker or 
 
 ## 7. Caching and budget
 
-- Service worker (`example/sw.js`): cache-first for `/mushaf/` and `/fonts/` (immutable), network-first for the app
+- Service worker (`example/public/sw.js`): cache-first for `/mushaf/` and `/fonts/` (immutable), network-first for the app
   shell, no audio in the service worker (Range; the HTTP cache keeps audio).
-- Prefetch only page JSON ±2 and fonts ±1 around the reader; never download the whole mushaf without the user
-  asking. Audio: one request per page.
+- Prefetch only page JSON ±2 and fonts ±1 around the reader (±3 fonts for the open book); never download the whole
+  mushaf without the user asking (the example's offline sheet: `example/src/mushaf/offline/`). Audio: one request per page.
 - Free tiers (verify current numbers): R2 10 GB storage, 10 M reads, 1 M writes a month, free egress; Workers 100 k
   requests a day. 8 reciters ≈ 6.3 GB + fonts 93 MB.
 
 ## 8. Integration recipes
 
-- **Plain JS / any server-rendered site**: copy `example/` and set `FILES_BASE`.
-- **React**: page component loads `getPage(n)` + fonts (placeholder until both ready), `fitLines` in
-  `useLayoutEffect`, fonts module stays a plain module; the audio player is a class outside React, read through
+- **The whole app**: `cd example && npm install && npm run build` with `VITE_FILES_BASE` set → `example/dist/` is a
+  static site (it can live under any host; the service worker is registered in production only).
+- **Plain JS / any server-rendered site**: port the framework-free modules listed in §1 (fonts, data, audio queue and
+  player, bands, book spreads, Arabic search) and draw a page as `QuranPageView.tsx` does.
+- **React**: start from `example/src/mushaf/` (it is React 19 + Tailwind v4): page component loads the page + fonts
+  (placeholder until both ready), `useQcfLineFit` in `useLayoutEffect`, fonts module stays a plain module; the audio player is a class outside React, read through
   `useSyncExternalStore`; swiping with a virtual RTL carousel (only current ±1 mounted).
 - **Vue / Svelte**: same split (data + fonts modules, page component, player class).
 - **Native / Flutter**: register the page font file and draw `g`; same line rules; platform audio player with the
   same `index.json` logic.
 
+## 8.1 The example's reading rules (keep them if you copy it)
+
+- From 1024 px wide the mushaf is the printed book: spreads 1|2, 3|4 … 603|604 (odd page on the right), a 3D turn of
+  the outer edge over the spine (DOM clones of pages already drawn; transforms, filter and opacity only), drag, ← / →
+  (ignored in inputs and while a dialog is open). `prefers-reduced-motion` or the "page-turn animation" setting off
+  swaps the spread with no motion.
+- A phone held sideways — `(orientation: landscape) and (max-height: 540px) and (pointer: coarse)` — never gets the
+  book: one vertical scroll of full-width pages, a band with the page and the hizb quarter between them.
+- On a phone the bars hide; a tap on the page shows them, with a soft scrim at the top and bottom only — no blur.
+  When a recitation starts the bars hide again (a setting).
+- The recited ayah is one flat band per line (no rounding, border or shadow); an ayah picked with a long press
+  (450 ms, 8 px cancels) gets the same band in gold.
+- RTL: the play triangle is mirrored, "next ayah" and "next page" are on the left; the header's title (surah, juz,
+  page) opens the index, with no chevron.
+- The settings (`example/src/settings/store.ts`) live in localStorage only: theme (light / dark / auto), the page
+  colour by day (cream, white, sand) and by night (black, deep green), the phone's view (swipe / scroll), page-turn
+  animation, keep the screen on, follow the reciter, hide the bars while listening, the language (ar / en / tr).
+  `index.html` applies the theme before the app loads.
+- The app has no account and no server of its own: every file is static.
+
 ## 9. Checks to run before saying it works
 
+0. `cd example && npm run build` passes (TypeScript and the bundle).
 1. Render pages 1, 2, 3, 50, 187, 342, 443, 552, 591, 604 at a 360 px wide viewport: no line has
    `scrollWidth > clientWidth`, 15 lines (header and basmala included) on pages ≥ 3, surah frames fill the width.
 2. Throttle the network: a page never shows letters in a fallback font (placeholder first).

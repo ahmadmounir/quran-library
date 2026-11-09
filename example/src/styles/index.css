@@ -1,0 +1,1353 @@
+/*
+ * The quran-libary mushaf: the same look as the mushaf of the Hafiz app (its stylesheet, trimmed to the mushaf), with
+ * the reader's settings on top: day / night (`.dark` on <html>) and the page colour (`data-paper` on <html>).
+ * Every colour of the page itself comes from the --mushaf-* variables below, so a new page colour is one block.
+ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+
+@theme inline {
+
+  /* Overlay: مجرد Fade بسيط */
+  --animate-overlay-in: fade-in 0.2s ease-out;
+  --animate-overlay-out: fade-out 0.2s ease-in;
+
+  /* Content: انزلاق من الأعلى (Bootstrap Style) */
+  --animate-modal-in: modal-in 0.3s ease-out;
+  --animate-modal-out: modal-out 0.2s ease-in;
+
+  /* Bottom sheet (phones): slides up from the screen's edge and back down,
+     with the curve of the phones' own sheets. Each keyframe gives only one end,
+     so a sheet the finger already pulled part of the way down leaves from
+     where it is, and the dimming fades from where the drag left it. */
+  --animate-sheet-in: sheet-in 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-sheet-out: sheet-out 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-sheet-overlay-in: sheet-overlay-in 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-sheet-overlay-out: sheet-overlay-out 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+
+  @keyframes sheet-in {
+    from {
+      transform: translate3d(0, 100%, 0);
+    }
+  }
+
+  @keyframes sheet-out {
+    to {
+      transform: translate3d(0, 100%, 0);
+    }
+  }
+
+  @keyframes sheet-overlay-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheet-overlay-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes modal-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.98);
+    }
+  }
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic",
+  ui-sans-serif,
+  system-ui,
+  sans-serif;
+  --font-mono: ui-monospace,
+  "SFMono-Regular",
+  "Consolas",
+  monospace;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-chart-success: var(--chart-success);
+  --color-chart-destructive: var(--chart-destructive);
+  --color-chart-muted: var(--chart-muted);
+  --color-chart-warning: var(--chart-warning);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  --color-paper: var(--mushaf-paper);
+  --color-paper-bar: var(--mushaf-bar);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+}
+
+/*
+ * The brand system of the Hafiz app, where this mushaf comes from.
+ * Colors come from the mark: gold on deep green. Deep green ("ink") carries text and actions, gold is an
+ * accent only (too light for text on paper). The app sits on warm paper; cards are white.
+ */
+:root {
+  --radius: 0.75rem;
+
+  /* a light warm cream (the owner's choice, 2026-11-07: the deeper sand looked dark); white cards stand out from it
+     by a soft shadow, and the scroll areas carry a faint geometric ornament over it (.app-backdrop) */
+  --background: #f8f6f1;
+  /* A 10-fold Islamic star pattern: 10-point rosettes (a small star in a ring of petals) with 5-point stars between
+     them, in thin lines of a faint warm gold (the owner's reference, 2026-11-08). Generated from the
+     identity's source files (never by hand); keep its 88 x 64 tile in step with the background-size of
+     .app-backdrop and .brand-surface. */
+  --app-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='64'%3E%3Cpath d='M0 0L-2 -0.32M-1.02 -2L0 0M0 64L-2 63.68M-2 32.32L0 32M-2 44.33L5.19 48M0 32L-2 35.93M-2 60.07L0 64M5.19 48L-2 51.67M30.4 41.89L34.12 45.61L38.81 48M13.6 54.11L9.88 50.39L5.19 48M13.6 41.89L9.88 45.61L5.19 48M38.81 48L34.12 50.39L30.4 54.11M13.6 41.89L14.56 48L13.6 54.11M30.4 41.89L29.44 48L30.4 54.11M44 32L26.28 29.19L13.6 41.89M30.4 41.89L17.72 29.19L0 32M13.6 41.89L10.79 24.15L-2 17.63M0 32L8.14 16L0 0M-2 14.37L10.79 7.85M10.79 7.85L12.35 -2M0 0L17.72 2.81L22.52 -2M21.48 -2L26.28 2.81L44 0M31.65 -2L33.21 7.85M33.21 7.85L49.19 16M44 0L35.86 16L44 32M49.19 16L33.21 24.15L30.4 41.89M74.4 9.89L78.12 13.61L82.81 16M57.6 22.11L53.88 18.39L49.19 16M57.6 9.89L53.88 13.61L49.19 16M82.81 16L78.12 18.39L74.4 22.11M74.4 9.89L73.44 16L74.4 22.11M57.6 9.89L58.56 16L57.6 22.11M88 0L75.39 -2M69.47 -2L57.6 9.89M74.4 9.89L62.53 -2M56.61 -2L44 0M57.6 9.89L55.72 -2M44 0L45.02 -2M86.98 -2L88 0M76.28 -2L74.4 9.89M1.02 66L0 64M11.72 66L13.6 54.11M0 64L12.61 66M18.53 66L30.4 54.11M13.6 54.11L25.47 66M31.39 66L44 64M30.4 54.11L32.28 66M44 64L42.98 66M88 64L70.28 61.19L65.48 66M66.52 66L61.72 61.19L44 64M56.35 66L54.79 56.15L38.81 48M44 64L52.14 48L44 32M38.81 48L54.79 39.85L57.6 22.11M44 32L61.72 34.81L74.4 22.11M57.6 22.11L70.28 34.81L88 32M74.4 22.11L77.21 39.85L90 46.37M88 32L79.86 48L88 64M90 49.63L77.21 56.15L75.65 66M90 31.68L88 32M90 19.67L82.81 16M88 32L90 28.07M90 3.93L88 0M82.81 16L90 12.33M88 0L90 0.32M89.02 66L88 64M88 64L90 64.32' fill='none' stroke='rgba(150,122,72,0.15)' stroke-width='0.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+  /* The same ornament in gold on the deep green of the brand (.brand-surface): the app bar, a person card's cover */
+  --brand-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='64'%3E%3Cpath d='M0 0L-2 -0.32M-1.02 -2L0 0M0 64L-2 63.68M-2 32.32L0 32M-2 44.33L5.19 48M0 32L-2 35.93M-2 60.07L0 64M5.19 48L-2 51.67M30.4 41.89L34.12 45.61L38.81 48M13.6 54.11L9.88 50.39L5.19 48M13.6 41.89L9.88 45.61L5.19 48M38.81 48L34.12 50.39L30.4 54.11M13.6 41.89L14.56 48L13.6 54.11M30.4 41.89L29.44 48L30.4 54.11M44 32L26.28 29.19L13.6 41.89M30.4 41.89L17.72 29.19L0 32M13.6 41.89L10.79 24.15L-2 17.63M0 32L8.14 16L0 0M-2 14.37L10.79 7.85M10.79 7.85L12.35 -2M0 0L17.72 2.81L22.52 -2M21.48 -2L26.28 2.81L44 0M31.65 -2L33.21 7.85M33.21 7.85L49.19 16M44 0L35.86 16L44 32M49.19 16L33.21 24.15L30.4 41.89M74.4 9.89L78.12 13.61L82.81 16M57.6 22.11L53.88 18.39L49.19 16M57.6 9.89L53.88 13.61L49.19 16M82.81 16L78.12 18.39L74.4 22.11M74.4 9.89L73.44 16L74.4 22.11M57.6 9.89L58.56 16L57.6 22.11M88 0L75.39 -2M69.47 -2L57.6 9.89M74.4 9.89L62.53 -2M56.61 -2L44 0M57.6 9.89L55.72 -2M44 0L45.02 -2M86.98 -2L88 0M76.28 -2L74.4 9.89M1.02 66L0 64M11.72 66L13.6 54.11M0 64L12.61 66M18.53 66L30.4 54.11M13.6 54.11L25.47 66M31.39 66L44 64M30.4 54.11L32.28 66M44 64L42.98 66M88 64L70.28 61.19L65.48 66M66.52 66L61.72 61.19L44 64M56.35 66L54.79 56.15L38.81 48M44 64L52.14 48L44 32M38.81 48L54.79 39.85L57.6 22.11M44 32L61.72 34.81L74.4 22.11M57.6 22.11L70.28 34.81L88 32M74.4 22.11L77.21 39.85L90 46.37M88 32L79.86 48L88 64M90 49.63L77.21 56.15L75.65 66M90 31.68L88 32M90 19.67L82.81 16M88 32L90 28.07M90 3.93L88 0M82.81 16L90 12.33M88 0L90 0.32M89.02 66L88 64M88 64L90 64.32' fill='none' stroke='rgba(214,182,110,0.2)' stroke-width='0.9' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --foreground: #14231d;
+  --card: #ffffff;
+  --card-foreground: #14231d;
+  --popover: #ffffff;
+  --popover-foreground: #14231d;
+
+  /* PRIMARY: the logo's deep green */
+  --primary: #0d3429;
+  --primary-foreground: #ffffff;
+
+  /* SECONDARY / MUTED: sand */
+  --secondary: #ede7db;
+  --secondary-foreground: #14231d;
+  --muted: #efe9de;
+  --muted-foreground: #56655d;
+
+  /* ACCENT: green tint for hover and selection */
+  --accent: #e6efe9;
+  --accent-foreground: #0d3429;
+
+  --destructive: #b3362d;
+  /* lines are hairlines: surfaces are told apart by color, not by borders */
+  --border: #ebe5d9;
+  --input: #cfc8b8;
+  --ring: #1f6b52;
+
+  --chart-1: #1f6b52;
+  --chart-2: #b69445;
+  --chart-3: #3d6e9e;
+  --chart-4: #c7622b;
+  --chart-5: #6b5ca5;
+  --chart-success: #1f8a5c;
+  --chart-destructive: #b3362d;
+  --chart-muted: #b9b2a2;
+  --chart-warning: #c28a1a;
+
+  /* The staff portal's sidebar: deep green with gold, like the sign-in screen's brand panel */
+  --sidebar: #0d3429;
+  --sidebar-foreground: rgb(255 255 255 / 0.72);
+  --sidebar-primary: #b69445;
+  --sidebar-primary-foreground: #0d3429;
+  --sidebar-accent: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: #b69445;
+
+  --shadow-card: 0 1px 2px rgb(13 52 41 / 0.04), 0 8px 24px -12px rgb(13 52 41 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(13 52 41 / 0.05), 0 24px 48px -24px rgb(13 52 41 / 0.28);
+}
+
+.dark {
+  /* The same brand at night: near-black green, readable green actions, gold accents */
+  --background: #07110d;
+  /* the same ornament at night: faint gold on the near-black green (the same generator, "dark") */
+  --app-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='64'%3E%3Cpath d='M0 0L-2 -0.32M-1.02 -2L0 0M0 64L-2 63.68M-2 32.32L0 32M-2 44.33L5.19 48M0 32L-2 35.93M-2 60.07L0 64M5.19 48L-2 51.67M30.4 41.89L34.12 45.61L38.81 48M13.6 54.11L9.88 50.39L5.19 48M13.6 41.89L9.88 45.61L5.19 48M38.81 48L34.12 50.39L30.4 54.11M13.6 41.89L14.56 48L13.6 54.11M30.4 41.89L29.44 48L30.4 54.11M44 32L26.28 29.19L13.6 41.89M30.4 41.89L17.72 29.19L0 32M13.6 41.89L10.79 24.15L-2 17.63M0 32L8.14 16L0 0M-2 14.37L10.79 7.85M10.79 7.85L12.35 -2M0 0L17.72 2.81L22.52 -2M21.48 -2L26.28 2.81L44 0M31.65 -2L33.21 7.85M33.21 7.85L49.19 16M44 0L35.86 16L44 32M49.19 16L33.21 24.15L30.4 41.89M74.4 9.89L78.12 13.61L82.81 16M57.6 22.11L53.88 18.39L49.19 16M57.6 9.89L53.88 13.61L49.19 16M82.81 16L78.12 18.39L74.4 22.11M74.4 9.89L73.44 16L74.4 22.11M57.6 9.89L58.56 16L57.6 22.11M88 0L75.39 -2M69.47 -2L57.6 9.89M74.4 9.89L62.53 -2M56.61 -2L44 0M57.6 9.89L55.72 -2M44 0L45.02 -2M86.98 -2L88 0M76.28 -2L74.4 9.89M1.02 66L0 64M11.72 66L13.6 54.11M0 64L12.61 66M18.53 66L30.4 54.11M13.6 54.11L25.47 66M31.39 66L44 64M30.4 54.11L32.28 66M44 64L42.98 66M88 64L70.28 61.19L65.48 66M66.52 66L61.72 61.19L44 64M56.35 66L54.79 56.15L38.81 48M44 64L52.14 48L44 32M38.81 48L54.79 39.85L57.6 22.11M44 32L61.72 34.81L74.4 22.11M57.6 22.11L70.28 34.81L88 32M74.4 22.11L77.21 39.85L90 46.37M88 32L79.86 48L88 64M90 49.63L77.21 56.15L75.65 66M90 31.68L88 32M90 19.67L82.81 16M88 32L90 28.07M90 3.93L88 0M82.81 16L90 12.33M88 0L90 0.32M89.02 66L88 64M88 64L90 64.32' fill='none' stroke='rgba(201,168,92,0.14)' stroke-width='0.8' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --foreground: #e8eee9;
+  --card: #10201a;
+  --card-foreground: #e8eee9;
+  --popover: #11221b;
+  --popover-foreground: #e8eee9;
+
+  --primary: #2f8c65;
+  --primary-foreground: #ffffff;
+
+  --secondary: #182a22;
+  --secondary-foreground: #e8eee9;
+  --muted: #15251e;
+  --muted-foreground: #9db0a6;
+  --accent: #183028;
+  --accent-foreground: #e8eee9;
+
+  --destructive: #e0574c;
+  --border: #1a2b24;
+  --input: #2d453a;
+  --ring: #46a882;
+
+  --chart-1: #46a882;
+  --chart-2: #c9a85a;
+  --chart-3: #6c9bd0;
+  --chart-4: #e0834e;
+  --chart-5: #9b8ad6;
+  --chart-success: #3cb27c;
+  --chart-destructive: #e0574c;
+  --chart-muted: #5d6f66;
+  --chart-warning: #d9a53a;
+
+  --sidebar: #091712;
+  --sidebar-foreground: rgb(255 255 255 / 0.7);
+  --sidebar-primary: #c9a85a;
+  --sidebar-primary-foreground: #091712;
+  --sidebar-accent: rgb(255 255 255 / 0.07);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-ring: #c9a85a;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 24px 48px -24px rgb(0 0 0 / 0.6);
+}
+
+
+/*
+ * The page: its paper, the warmer paper of the bars, the gold of the margin furniture, the edge of the book's pages
+ * and the folio's ground. Day: cream (the print's paper, the default), white, sand. Night: black (the default) and a
+ * deep green. settings/store.ts sets data-paper; PAPER_COLORS there (and index.html) must match --mushaf-paper.
+ */
+:root {
+  --mushaf-paper: #fbf6ea;
+  --mushaf-bar: #f6eedb;
+  --mushaf-gold: #8a6d2f;
+  --mushaf-paper-edge: #e3d5b4;
+  --mushaf-folio-bg: #fbf6ea;
+}
+
+:root[data-paper="white"] {
+  --mushaf-paper: #ffffff;
+  --mushaf-bar: #f7f4ec;
+  --mushaf-paper-edge: #e4ddcd;
+  --mushaf-folio-bg: #ffffff;
+}
+
+:root[data-paper="sepia"] {
+  --mushaf-paper: #f3e6c8;
+  --mushaf-bar: #ecdcb8;
+  --mushaf-gold: #7d6127;
+  --mushaf-paper-edge: #d6c08f;
+  --mushaf-folio-bg: #f3e6c8;
+}
+
+.dark {
+  --mushaf-paper: #080808;
+  --mushaf-bar: #12110e;
+  --mushaf-gold: #cdb26a;
+  --mushaf-paper-edge: #2c2820;
+  --mushaf-folio-bg: #211e18;
+}
+
+:root.dark[data-paper="green"] {
+  --mushaf-paper: #0b1713;
+  --mushaf-bar: #10201a;
+  --mushaf-paper-edge: #1f3329;
+  --mushaf-folio-bg: #15291f;
+}
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    width: 100%;
+    /* An app, not a web page: 16px on phones and tablets (also what keeps iOS from zooming into a field), 15px on a
+       wide screen. Every rem-based size grows with it. */
+    font-size: 16px;
+  }
+
+  @media (min-width: 1024px) {
+    html,
+    body {
+      font-size: 15px;
+    }
+  }
+
+  #root {
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+
+  body {
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Arabic script is joined: spacing letters apart breaks the words (tracking-* utilities included) */
+  [dir="rtl"],
+  [dir="rtl"] * {
+    letter-spacing: normal !important;
+  }
+}
+
+/* Filled controls lying on the bare wallpaper (not inside a card, a menu or a dialog): their see-through fill would let
+ * the ornament show through. A field or a tonal button (.surface-fill: Input, Textarea, SelectTrigger, Button outline)
+ * becomes a white card there; a track (.surface-track: TabsList, SegmentedControl) an opaque tint of the same weight, so
+ * its white active pill still stands out. Inside a card they keep their soft fill. Unlayered: it wins over utilities. */
+.app-backdrop .surface-fill:not(:is(.bg-card, .bg-popover, [role="dialog"]) *) {
+  background-color: var(--card);
+  box-shadow: var(--shadow-card);
+}
+
+.app-backdrop button.surface-fill:not(:is(.bg-card, .bg-popover, [role="dialog"]) *):hover {
+  background-color: color-mix(in oklab, var(--foreground) 4%, var(--card));
+}
+
+.app-backdrop .surface-track:not(:is(.bg-card, .bg-popover, [role="dialog"]) *) {
+  background-color: color-mix(in oklab, var(--foreground) 6%, var(--background));
+}
+
+/* App surfaces: a white card is told apart from the sand by its color and a soft shadow, never by an outline. The
+ * features write their cards by hand as `border bg-card`; this drops the outline in one place. It sits in the
+ * components layer, so a card's own border color (a selected one: border-primary) or shadow class still wins. */
+@layer components {
+  /* The wallpaper: the cream with its ornament in light mode, the near-black green with the same ornament in faint
+     gold in dark. */
+  .app-backdrop {
+    background-color: var(--background);
+    background-image: var(--app-pattern);
+    background-size: 88px 64px;
+    background-attachment: scroll;
+  }
+
+  /* Our mark on a surface: the deep green of the brand (the installed app's status bar, the staff sidebar, the sign-in
+     panel) with the gold ornament, in light and dark alike. The phone app bars and a person card's cover use it. */
+  .brand-surface {
+    background-color: var(--brand-ink);
+    background-image: radial-gradient(120% 160% at 100% 0%, rgb(255 255 255 / 0.07), transparent 55%), var(--brand-pattern);
+    background-size: 100% 100%, 88px 64px;
+    color: #fff;
+  }
+
+  .bg-card.border:not(input, textarea, select, button, [role="combobox"]) {
+    border-color: transparent;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* A panel or chip drawn with a border inside a card, a dialog or a menu becomes a light tint of the text color
+   * instead (dashed drop zones keep their line; a bg-* or border-* class of its own still wins). */
+  :is(.bg-card, .bg-popover) .border:not(input, textarea, select, button, [role="combobox"], .border-dashed, .bg-card) {
+    border-color: transparent;
+    background-color: color-mix(in oklab, var(--foreground) 4%, transparent);
+  }
+}
+
+/* Scrollbars: a slim rounded thumb on an invisible track, the same everywhere (the browser's own is wide and
+   boxy, and on Windows it never fades). Chromium and Safari read the ::-webkit-scrollbar rules — they ignore them
+   on an element that sets scrollbar-width itself (e.g. the mushaf's hidden one); Firefox has no such rules and
+   reads scrollbar-width / scrollbar-color instead. The color follows the theme through --muted-foreground. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+  background-color: color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+}
+
+/* A dropdown list (Radix Select) shows the same slim scrollbar: Radix hides it, and a long list cut at the window's
+   edge then looks as if it did not scroll. `auto`, not `thin`: Chromium only applies the ::-webkit-scrollbar rules
+   above while scrollbar-width is auto. */
+[data-radix-select-viewport] {
+  scrollbar-width: auto !important;
+}
+
+[data-radix-select-viewport]::-webkit-scrollbar {
+  display: block !important;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent) transparent;
+  }
+}
+
+
+/* Sonner toast status icon colors */
+.toaster [data-sonner-toast][data-type="success"] [data-icon] {
+  color: #22c55e !important;
+}
+
+.toaster [data-sonner-toast][data-type="error"] [data-icon] {
+  color: #ef4444 !important;
+}
+
+.toaster [data-sonner-toast][data-type="info"] [data-icon] {
+  color: #3b82f6 !important;
+}
+
+.toaster [data-sonner-toast][data-type="warning"] [data-icon] {
+  color: #f59e0b !important;
+}
+
+/* Dark theme icon colors */
+.dark .toaster [data-sonner-toast][data-type="success"] [data-icon] {
+  color: #22c55e !important;
+}
+
+.dark .toaster [data-sonner-toast][data-type="error"] [data-icon] {
+  color: #ef4444 !important;
+}
+
+.dark .toaster [data-sonner-toast][data-type="info"] [data-icon] {
+  color: #3b82f6 !important;
+}
+
+.dark .toaster [data-sonner-toast][data-type="warning"] [data-icon] {
+  color: #f59e0b !important;
+}
+
+/* Sonner toast close button: sit inline at the end of the toast body instead of
+     floating in the corner, with no border and a hover background instead.
+     Sonner renders the close button before the icon/content in the DOM, so it must be
+     reordered to the end of the flex row (order, logical so it still works in RTL) —
+     the auto margin then pushes only the button, keeping the message flush at the start. */
+.toaster [data-sonner-toast] [data-close-button] {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  order: 1;
+  margin-inline-start: auto !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--muted-foreground) !important;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.toaster [data-sonner-toast] [data-close-button]:hover {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+}
+
+/* RTL Support - Ensuring Inputs behave correctly */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"],
+/* a phone number is read left to right, next to its country code (PhoneInput) */
+[dir="rtl"] input[type="tel"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* --- Page card: strict 3:5 page proportions, never stretched. ---
+   The card is a size container so the type scales with the CARD width (not the
+   viewport) via cqw units — identical proportions 1-up on mobile and 2-up on
+   desktop. Width is capped at 450px and also derived from the available height
+   so the full page always fits under the 3.5rem header + vertical padding.
+   The words are the King Fahd Complex page fonts (QCF V2, as on Quran.com and
+   Tarteel): one glyph per word, and a full printed line measures ~15.6em. So the
+   size (--qcf-size) is the line width (100cqw: the card's content box) / 16,
+   capped so the 15 lines get at least 1.8em each and never touch: --qcf-room is
+   the height they share (the 3:5 card's content is ~164.5cqw high, minus the
+   body's padding). The margin furniture (running head, folio) uses the app font. */
+.mushaf-page-card {
+  position: relative;
+  aspect-ratio: 3 / 5;
+  width: min(100%, 450px, calc((100dvh - 7.5rem) * 3 / 5));
+  container-type: inline-size;
+  --qcf-room: calc(164.5cqw - 3.5rem);
+  --qcf-size: min(calc(100cqw / 16), calc(var(--qcf-room) / 27));
+  font-family: "IBM Plex Sans Arabic", serif;
+  background-color: var(--mushaf-paper);
+  border: 0.1px solid color-mix(in oklab, #b8912e 70%, transparent);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 10px;
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.08);
+  /* Keep the text comfortably inside the ornamental frame */
+  padding: 6% 3%;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.dark .mushaf-page-card {
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.4);
+}
+
+/* Vertical rhythm: the 15 printed lines share the page height evenly */
+.mushaf-page-body {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  direction: rtl;
+  overflow: visible;
+  padding-bottom: 1.75rem;
+  padding-top: 1.75rem;
+}
+
+/* Ornamental opening pages (1-2) have ~8 short lines, vertically centered */
+.mushaf-page-body.mushaf-opening {
+  justify-content: center;
+  gap: 0.4em;
+}
+
+/* One printed line: words spread edge-to-edge exactly like the mushaf print.
+   overflow stays visible so harakat above/below the glyphs never clip. The rare
+   line wider than the page is made smaller by useQcfLineFit. */
+.mushaf-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  direction: rtl;
+  white-space: nowrap;
+  overflow: visible;
+  font-size: var(--qcf-size);
+  line-height: 1.5;
+  width: 100%;
+}
+
+/* A short line the print centers (end of a surah, the last page) */
+.mushaf-line.mushaf-line-centered {
+  justify-content: center;
+  column-gap: 0.25em;
+}
+
+/* Pages 1-2: few short lines, always centered, drawn larger like the print */
+.mushaf-page-body.mushaf-opening .mushaf-line {
+  justify-content: center;
+  gap: 0.2em;
+  font-size: calc(var(--qcf-size) * 1.3);
+}
+
+.mushaf-word {
+  display: inline-block;
+  border-radius: 0.2em;
+  overflow: visible;
+}
+
+/* The ayah the reciter is reading: one flat band per line, from its first word to its last, reaching halfway into
+   the space between two lines of the same ayah so they join (useAyahBand sets the line's --band-* values). No
+   rounding, border or shadow. The band sits behind the words (the line is its own stacking context). */
+.mushaf-line-reading {
+  position: relative;
+  isolation: isolate;
+}
+
+.mushaf-line-reading::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* Physical left on purpose: the band is measured from the line's left edge in any direction */
+  left: var(--band-start, 0px);
+  width: var(--band-width, 0px);
+  top: calc(0px - var(--band-up, 0px));
+  bottom: calc(0px - var(--band-down, 0px));
+  background-color: color-mix(in oklab, var(--primary) 16%, transparent);
+  pointer-events: none;
+}
+
+/* The ayah picked with a long press (its listen / share sheet is open): the same flat band in gold, on ::after so it
+   can share a line with the reading band (useAyahBand(…, "selected") sets the line's --selected-* values). */
+.mushaf-line-selected {
+  position: relative;
+  isolation: isolate;
+}
+
+.mushaf-line-selected::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: var(--selected-start, 0px);
+  width: var(--selected-width, 0px);
+  top: calc(0px - var(--selected-up, 0px));
+  bottom: calc(0px - var(--selected-down, 0px));
+  background-color: color-mix(in oklab, #c9a227 28%, transparent);
+  pointer-events: none;
+  /* No fade-in: the band is re-measured (class off and on) whenever the page changes, which would restart it */
+}
+
+.dark .mushaf-line-selected::after {
+  background-color: color-mix(in oklab, #d8b866 26%, transparent);
+}
+
+/* Temporary pulse on a searched ayah after jumping to its page */
+.mushaf-flash {
+  animation: mushaf-flash 2.4s ease-in-out;
+}
+
+@keyframes mushaf-flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+  }
+
+  15%,
+  70% {
+    background-color: color-mix(in oklab, var(--primary) 32%, transparent);
+  }
+}
+
+/* A surah's header is exactly as high as its frame (below), so the page shares
+   the free space around it like around any line and nothing touches it. */
+.mushaf-surah-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12.2cqw;
+  direction: rtl;
+  overflow: visible;
+}
+
+/* The print's ornamental frame with «سورة …» inside: one glyph, 3.302em wide and
+   0.4em high, sized to the full line width (100cqw) like the ayat. Gold like the
+   page's margin furniture. */
+.mushaf-surah-frame {
+  font-size: calc(100cqw / 3.302);
+  line-height: 1;
+  color: var(--mushaf-gold);
+}
+
+/* Drawn with Al-Fatihah's own basmala glyphs (page 1's font) */
+.mushaf-basmala {
+  display: flex;
+  justify-content: center;
+  gap: 0.2em;
+  direction: rtl;
+  font-size: var(--qcf-size);
+  line-height: 1.5;
+  overflow: visible;
+}
+
+.mushaf-swiper {
+  height: 100%;
+}
+
+/* Slides only position the page card — the card itself is fixed-ratio and
+   centered, so nothing ever stretches to the slide width. */
+.mushaf-swiper .swiper-slide {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Desktop: the open mushaf (MushafBookView). ---
+   Two pages meet at the spine like the printed book, 1|2 … 603|604, and a
+   turn lifts the sheet at its outer edge and lays it over the spine in 3D.
+   Sides are physical (the mushaf is right-to-left whatever the UI language),
+   so left / right are meant literally here. The stage is a size container:
+   a page is as tall as the space allows, 3:5, at most 450px wide. */
+.mushaf-book-stage {
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.mushaf-book {
+  --book-page-w: min(450px, calc((100cqh - 2.5rem) * 3 / 5), calc(50cqw - 0.75rem));
+  --book-paper: var(--mushaf-paper);
+  --book-paper-edge: var(--mushaf-paper-edge);
+  --book-shadow: 60 40 10;
+  position: relative;
+  width: calc(var(--book-page-w) * 2);
+  aspect-ratio: 6 / 5;
+  perspective: 3200px;
+  perspective-origin: 50% 45%;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dark .mushaf-book {
+  --book-shadow: 0 0 0;
+}
+
+/* The book's own shadow on the table */
+.mushaf-book::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow:
+    0 22px 44px -22px rgb(0 0 0 / 0.4),
+    0 3px 12px rgb(0 0 0 / 0.08);
+  pointer-events: none;
+}
+
+/* The paper edges outside the covers: read pages pile up on the right */
+.mushaf-book-edge {
+  position: absolute;
+  top: 0.8%;
+  bottom: 0.8%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    var(--book-paper-edge) 0 1px,
+    var(--book-paper) 1px 2px
+  );
+}
+
+.mushaf-book-edge[data-side="right"] {
+  right: calc(var(--book-edge-right) * -1);
+  width: var(--book-edge-right);
+  border-radius: 0 4px 4px 0;
+}
+
+.mushaf-book-edge[data-side="left"] {
+  left: calc(var(--book-edge-left) * -1);
+  width: var(--book-edge-left);
+  border-radius: 4px 0 0 4px;
+}
+
+.mushaf-book-slot {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+}
+
+.mushaf-book-slot[data-side="right"] {
+  right: 0;
+}
+
+.mushaf-book-slot[data-side="left"] {
+  left: 0;
+}
+
+/* Pages kept drawn for the next turn: laid out exactly like the shown ones,
+   so a copy of them can be turned at once, but not seen */
+.mushaf-book-slot[data-shown="false"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mushaf-book .mushaf-page-card {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+
+.mushaf-book [data-side="right"] > .mushaf-page-card {
+  border-radius: 0 12px 12px 0;
+}
+
+.mushaf-book [data-side="left"] > .mushaf-page-card {
+  border-radius: 12px 0 0 12px;
+}
+
+/* The binding: each page darkens a little where it curves into the spine.
+   It belongs to the page, so the turning copy carries it too. */
+.mushaf-book [data-side] > .mushaf-page-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10%;
+  pointer-events: none;
+}
+
+.mushaf-book [data-side="right"] > .mushaf-page-card::after {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgb(var(--book-shadow) / 0.2),
+    rgb(var(--book-shadow) / 0.06) 40%,
+    transparent
+  );
+}
+
+.mushaf-book [data-side="left"] > .mushaf-page-card::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgb(var(--book-shadow) / 0.2),
+    rgb(var(--book-shadow) / 0.06) 40%,
+    transparent
+  );
+}
+
+/* Shadows on the pages under the turning sheet (opacity / transform only) */
+.mushaf-book-shades {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.mushaf-book-shades[data-side="right"] {
+  right: 0;
+  border-radius: 0 12px 12px 0;
+}
+
+.mushaf-book-shades[data-side="left"] {
+  left: 0;
+  border-radius: 12px 0 0 12px;
+}
+
+.mushaf-book-reveal {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.mushaf-book-shades[data-side="left"] .mushaf-book-reveal {
+  transform-origin: 100% 50%;
+  background: linear-gradient(to left, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.12) 55%, transparent);
+}
+
+.mushaf-book-shades[data-side="right"] .mushaf-book-reveal {
+  transform-origin: 0 50%;
+  background: linear-gradient(to right, rgb(0 0 0 / 0.42), rgb(0 0 0 / 0.12) 55%, transparent);
+}
+
+/* A band just past the edge of the sheet that comes down; --cast-at is how
+   far from the spine the edge is */
+.mushaf-book-cast {
+  position: absolute;
+  top: 0;
+  width: 30%;
+  height: 100%;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.mushaf-book-shades[data-side="right"] .mushaf-book-cast {
+  left: 0;
+  transform: translateX(calc(var(--cast-at, 0%) * 100 / 30));
+  background: linear-gradient(to right, rgb(0 0 0 / 0.38), rgb(0 0 0 / 0.1) 45%, transparent);
+}
+
+.mushaf-book-shades[data-side="left"] .mushaf-book-cast {
+  right: 0;
+  transform: translateX(calc(var(--cast-at, 0%) * -100 / 30));
+  background: linear-gradient(to left, rgb(0 0 0 / 0.38), rgb(0 0 0 / 0.1) 45%, transparent);
+}
+
+/* The turning sheet: strips hinged one on the other (see buildLeaf) */
+.mushaf-book-leaf {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.mushaf-book-leaf[data-from="left"] {
+  left: 0;
+}
+
+.mushaf-book-leaf[data-from="right"] {
+  right: 0;
+}
+
+.mushaf-leaf-seg {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.mushaf-book-leaf[data-from="left"] > .mushaf-leaf-seg {
+  right: 0;
+  width: calc(100% / var(--leaf-strips));
+  transform-origin: 100% 50%;
+}
+
+.mushaf-book-leaf[data-from="left"] .mushaf-leaf-seg .mushaf-leaf-seg {
+  right: 100%;
+  width: 100%;
+  transform-origin: 100% 50%;
+}
+
+.mushaf-book-leaf[data-from="right"] > .mushaf-leaf-seg {
+  left: 0;
+  width: calc(100% / var(--leaf-strips));
+  transform-origin: 0 50%;
+}
+
+.mushaf-book-leaf[data-from="right"] .mushaf-leaf-seg .mushaf-leaf-seg {
+  left: 100%;
+  width: 100%;
+  transform-origin: 0 50%;
+}
+
+/* A strip's face, slightly wider than the strip so neighbours never show a
+   hairline between them. Its light is a brightness filter set per frame. */
+.mushaf-leaf-face {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -0.5px;
+  right: -0.5px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: filter;
+}
+
+.mushaf-leaf-face[data-face="back"] {
+  transform: rotateY(180deg);
+}
+
+/* The whole page behind the strip's window, moved so the strip shows its
+   slice (the face is 1px wider than the strip: 100% - 1px is one strip) */
+.mushaf-leaf-content {
+  position: absolute;
+  top: 0;
+  width: calc((100% - 1px) * var(--leaf-strips));
+  height: 100%;
+  background-color: var(--book-paper);
+}
+
+/* --- Scrolling view: every page stacked in one vertical list. ---
+   Each slot has the same height, set here and not by its content, so the list
+   can leave far-away slots empty and still know where every page starts. A
+   page is exactly as big as in the swiping view: the same width formula and
+   3:5 ratio as .mushaf-page-card, and on phones the full height of the view. */
+.mushaf-scroll {
+  container-type: size;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  outline: none;
+  scrollbar-width: none;
+}
+
+.mushaf-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.mushaf-scroll-item {
+  width: min(100%, 450px, calc((100dvh - 7.5rem) * 3 / 5));
+  margin-inline: auto;
+  padding-block: 0.5rem;
+}
+
+.mushaf-scroll-slot {
+  aspect-ratio: 3 / 5;
+}
+
+.mushaf-scroll-slot .mushaf-page-card {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* Printed-style folio number, centered in the bottom margin of every page.
+   Opaque page-colored background so it stays legible over the frame art. */
+.mushaf-page-number {
+  position: absolute;
+  bottom: 1.4%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 2.4em;
+  padding: 0 0.6em;
+  text-align: center;
+  font-size: clamp(12px, 3cqw, 15px);
+  line-height: 1.7;
+  color: var(--mushaf-gold);
+  background-color: var(--mushaf-folio-bg);
+  border: 1px solid color-mix(in oklab, #b8912e 55%, transparent);
+  border-radius: 999px;
+}
+
+/* --- A phone turned sideways (MushafLandscapeView, usePhoneLandscape). ---
+   Like the mushaf apps: every page across the full width, about three lines on
+   the screen, read by scrolling, a band with the page number and the hizb's
+   quarter between two pages. Every slot has the same height, from the width
+   only (never the height, which changes with the browser's bars): 15 lines of
+   2.3em each (the font is the line width / 16) + the running head + a margin,
+   rounded down to a whole pixel so 604 slots add up exactly (round() is
+   skipped by old browsers: the first declaration stays). cqw here is the
+   scroller's width; inside a page card it is the card's own (its lines). */
+.mushaf-landscape {
+  container-type: size;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+  outline: none;
+  scrollbar-width: none;
+  background-color: var(--mushaf-paper);
+  --ls-pad: max(1.25rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  --ls-line: calc((100cqw - 2 * var(--ls-pad)) / 16 * 2.3);
+  --ls-head: 2.75rem;
+  --ls-foot: 0.75rem;
+}
+
+.mushaf-landscape::-webkit-scrollbar {
+  display: none;
+}
+
+.mushaf-landscape-item {
+  padding-inline: var(--ls-pad);
+}
+
+.mushaf-landscape-slot {
+  height: calc(var(--ls-head) + 15 * var(--ls-line) + var(--ls-foot));
+  height: round(down, calc(var(--ls-head) + 15 * var(--ls-line) + var(--ls-foot)), 1px);
+}
+
+.mushaf-landscape .mushaf-page-card {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background-color: transparent;
+  padding: var(--ls-head) 0 var(--ls-foot);
+  /* The line width alone sets the size: the slot's height was made from it */
+  --qcf-size: calc(100cqw / 16);
+}
+
+.mushaf-landscape .mushaf-page-body {
+  padding-block: 0;
+}
+
+/* The running head (surah, juz) sits in the page's top margin */
+.mushaf-landscape .mushaf-page-card > div:first-child {
+  top: 0.8rem;
+  inset-inline: 0;
+}
+
+/* The page number is on the band under the page instead */
+.mushaf-landscape .mushaf-page-number {
+  display: none;
+}
+
+/* The break between two pages: a band across the whole screen */
+.mushaf-landscape-break {
+  display: flex;
+  /* Whole pixels, like the slot (the app's rem is 14px) */
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-inline: calc(0px - var(--ls-pad));
+  border-block: 1px solid color-mix(in oklab, #b8912e 28%, transparent);
+  background-color: color-mix(in oklab, #b8912e 9%, var(--mushaf-paper));
+  color: var(--mushaf-gold);
+  font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
+  font-size: 13px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dark .mushaf-landscape-break {
+  border-color: color-mix(in oklab, #cdb26a 18%, transparent);
+  background-color: var(--mushaf-bar);
+  color: var(--mushaf-gold);
+}
+
+.mushaf-landscape-break-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0 0.9em;
+  line-height: 1.8;
+  border: 1px solid color-mix(in oklab, #b8912e 55%, transparent);
+  border-radius: 999px;
+  background-color: var(--mushaf-folio-bg);
+}
+
+/* Mobile (xs/sm): the page goes full-bleed — full width and full height under
+   the header — instead of a letterboxed 3:5 card. Block padding is larger in %
+   (percentages resolve against width) to keep the text clear of the stretched
+   frame art. Desktop/tablet keep the fixed-ratio card untouched. */
+
+@media (max-width: 500px) {
+  .mushaf-page-card {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+
+    padding: 8% 1.5%;
+
+    /* The card is the whole screen, so the lines' height comes from the screen */
+    --qcf-room: calc(100dvh - 16.5cqw - 3.5rem);
+  }
+
+  .mushaf-scroll-item {
+    width: 100%;
+    padding-block: 0;
+  }
+
+  /* Full screen per page, like a swiped page. The header floats over the
+     view at this size, so the view is the whole screen: 100dvh is the same
+     height, and stays as the fallback where the exact unit (the scroller's
+     own height, cqh) is not supported. */
+  .mushaf-scroll-slot {
+    aspect-ratio: auto;
+    height: 100vh;
+    height: 100dvh;
+    height: 100cqh;
+  }
+}
+
+/* ============================================================
+ * The brand: the gold mark on deep green, as named colours for the mark and its tile. The theme tokens on top are
+ * built from the same values.
+ * ============================================================ */
+:root {
+  --brand-ink: #0d3429;
+  --brand-ink-soft: #17473a;
+  --brand-green: #1f6b52;
+  --brand-gold: #b69445;
+  --brand-paper: #faf8f3;
+  --brand-line: #e3ded2;
+  --brand-line-strong: #cfc8b8;
+  --brand-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-gold: var(--brand-gold);
+}
+
+/* The mark «صوت المصحف» (brand/Logo.tsx): the bars and the gold spine — always two colours. Light mode by default,
+ * dark mode under .dark; .mark-tone-* pins one background's colours whatever the theme. */
+:root {
+  --mark-bars: #0f4a3a;
+  --mark-spine: #b69445;
+}
+
+.dark,
+.mark-tone-onDark {
+  --mark-bars: #f3ecdc;
+  --mark-spine: #d4b061;
+}
+
+.mark-tone-onLight {
+  --mark-bars: #0f4a3a;
+  --mark-spine: #b69445;
+}
+
+.mark-tone-onGold {
+  --mark-bars: #0d3429;
+  --mark-spine: #f3ecdc;
+}
+
+/* The loader «التلاوة» (MarkLoader): each bar dips and rises, the spine first, then outward (--ring = 0…4).
+ * index.html draws the same bars before the app's code has loaded. */
+.mark-loader-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mark-loader-bar {
+    animation: mark-recite 1.15s ease-in-out infinite;
+    animation-delay: calc(var(--ring, 0) * 0.12s);
+  }
+}
+
+@keyframes mark-recite {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.42);
+  }
+}
+
+
+/* The arrows beside the open book: gold on the paper, like the header's buttons */
+.mushaf-turn-button {
+  color: var(--mushaf-gold);
+  background-color: color-mix(in oklab, var(--mushaf-paper) 80%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, #b8912e 28%, transparent), 0 6px 18px -10px rgb(13 52 41 / 0.45);
+}
+
+.mushaf-turn-button:hover {
+  background-color: var(--mushaf-paper);
+  color: var(--mushaf-gold);
+}
+
+/* The open book lies on a quiet table: the cream wallpaper with the faint star ornament of the identity */
+.mushaf-table {
+  background-color: var(--background);
+  background-image: var(--app-pattern);
+  background-size: 88px 64px;
+}
+
+
+/* ===================== Mushaf index (MushafIndexScreen) =====================
+   A screen of its own: it rises a little and fades in with the phones' sheet
+   curve, and sinks back faster when it closes (Radix waits for the animation).
+   The rows near the reader's one ripple in after it (--i: how far from it). */
+.mushaf-index[data-state="open"] {
+  animation: mushaf-index-in 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.mushaf-index[data-state="closed"] {
+  animation: mushaf-index-out 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes mushaf-index-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 2rem, 0) scale(0.985);
+  }
+}
+
+@keyframes mushaf-index-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, 1.25rem, 0) scale(0.99);
+  }
+}
+
+.mushaf-index-row {
+  animation: mushaf-index-row 0.5s cubic-bezier(0.32, 0.72, 0, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 22ms + 90ms);
+}
+
+@keyframes mushaf-index-row {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0);
+  }
+}
+
+/* The cover: the deep green of the share picture, lit from the top, with a
+   faint lattice of gold eight-pointed stars */
+.mushaf-index-cover {
+  background-color: #0d3429;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='54'%3E%3Cpath d='M27 18L29.64 20.64L33.36 20.64L33.36 24.36L36 27L33.36 29.64L33.36 33.36L29.64 33.36L27 36L24.36 33.36L20.64 33.36L20.64 29.64L18 27L20.64 24.36L20.64 20.64L24.36 20.64Z' fill='none' stroke='rgba(201,162,74,0.11)' stroke-width='1'/%3E%3C/svg%3E"),
+    radial-gradient(120% 160% at 50% 0%, #145040 0%, #0d3429 55%, #0a2a21 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mushaf-index[data-state],
+  .mushaf-index-row {
+    animation: none;
+  }
+}
+
+/* "No internet" (OfflineState): rises softly into the middle of the screen */
+.offline-state {
+  animation: mushaf-index-row 0.6s cubic-bezier(0.32, 0.72, 0, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offline-state {
+    animation: none;
+  }
+}

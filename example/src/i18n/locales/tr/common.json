@@ -1,0 +1,21 @@
+{
+  "appName": "Kur'an Kütüphanesi",
+  "appTagline": "Basıldığı gibi Mushaf",
+  "loading": "Yükleniyor…",
+  "cancel": "İptal",
+  "close": "Kapat",
+  "next": "İleri",
+  "previous": "Önceki",
+  "refresh": "Yenile",
+  "network": {
+    "offlineTitle": "İnternet bağlantısı yok",
+    "backOnline": "İnternet bağlantısı geri geldi",
+    "notice": {
+      "mushaf": "Mushaf bu cihazda her zamanki gibi çalışır.",
+      "savedPages": "Bu cihazda kayıtlı sayfalar yine açılır."
+    }
+  },
+  "offlineState": {
+    "retry": "Tekrar dene"
+  }
+}

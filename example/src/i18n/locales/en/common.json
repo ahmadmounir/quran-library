@@ -1,0 +1,21 @@
+{
+  "appName": "Quran Library",
+  "appTagline": "The mushaf as printed",
+  "loading": "Loading…",
+  "cancel": "Cancel",
+  "close": "Close",
+  "next": "Next",
+  "previous": "Previous",
+  "refresh": "Refresh",
+  "network": {
+    "offlineTitle": "No internet connection",
+    "backOnline": "You're back online",
+    "notice": {
+      "mushaf": "The mushaf keeps working on this device.",
+      "savedPages": "Pages saved on this device still open."
+    }
+  },
+  "offlineState": {
+    "retry": "Try again"
+  }
+}

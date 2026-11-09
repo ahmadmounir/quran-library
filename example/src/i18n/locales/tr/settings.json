@@ -1,0 +1,61 @@
+{
+  "title": "Ayarlar",
+  "subtitle": "Mushafı kendine göre ayarla",
+  "appearance": "Görünüm",
+  "theme": {
+    "light": "Gündüz",
+    "dark": "Gece",
+    "auto": "Otomatik",
+    "autoHint": "Cihazına uyar: aydınlıkta gündüz, ekranın karardığında gece."
+  },
+  "paper": {
+    "title": "Sayfa rengi",
+    "day": "Gündüz",
+    "night": "Gece",
+    "now": "Şimdi",
+    "cream": "Krem",
+    "white": "Beyaz",
+    "sepia": "Kum",
+    "black": "Siyah",
+    "green": "Koyu yeşil"
+  },
+  "reading": "Okuma",
+  "viewMode": {
+    "title": "Sayfalar arasında geçiş",
+    "swipeHint": "Telefonda sayfa sayfa çevrilir; bilgisayarda Mushaf iki sayfalı bir kitap gibi açılır.",
+    "scrollHint": "Sayfalar aşağı kaydırdıkça art arda gelir; telefonda ve bilgisayarda."
+  },
+  "pageTurn": {
+    "title": "Sayfa çevirme animasyonu",
+    "hint": "Yaprak basılı Mushaf gibi çevrilir. Kapalıyken sayfalar hemen değişir."
+  },
+  "keepAwake": {
+    "title": "Ekranı açık tut",
+    "hint": "Mushaf açıkken ekran kapanmaz."
+  },
+  "listening": "Dinleme",
+  "reciter": "Kârî",
+  "followReciter": {
+    "title": "Kârîyi takip et",
+    "hint": "Mushaf okunan sayfaya kendiliğinden geçer."
+  },
+  "immersive": {
+    "title": "Okunurken düğmeleri gizle",
+    "hint": "Telefonda yalnızca âyetler kalır; bir dokunuş düğmeleri geri getirir."
+  },
+  "language": "Dil",
+  "device": "Bu cihazda",
+  "install": {
+    "title": "Mushafı cihazına yükle",
+    "hint": "Ana ekrandan uygulama gibi açılır ve internetsiz çalışır.",
+    "iosHint": "Safari'de Paylaş'a dokun, sonra “Ana Ekrana Ekle”."
+  },
+  "about": {
+    "edition": "Medine Mushafı · 1421H baskısı",
+    "body": "Kral Fahd Kompleksi'nin kendi sayfa yazı tipleriyle, basılı Mushaf'taki gibi sayfa sayfa ve değiştirilmeden çizilir. Allah'ın Kitabı'na hizmet eden herkes kendi sitesine ya da uygulamasına koysun diye açık kaynak ve ücretsizdir.",
+    "thanks": "Kral Fahd Kompleksi'ne, Tarteel'e (QUL), Quran.com'a, EveryAyah'a ve kârîlere teşekkürle.",
+    "source": "GitHub'da kaynak kodu"
+  },
+  "reset": "Varsayılan ayarlar",
+  "done": "Tamam"
+}

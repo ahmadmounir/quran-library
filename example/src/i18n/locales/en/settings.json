@@ -1,0 +1,61 @@
+{
+  "title": "Settings",
+  "subtitle": "Make the mushaf yours",
+  "appearance": "Appearance",
+  "theme": {
+    "light": "Day",
+    "dark": "Night",
+    "auto": "Auto",
+    "autoHint": "Follows your device: day while it is light, night when your screen turns dark."
+  },
+  "paper": {
+    "title": "Page colour",
+    "day": "By day",
+    "night": "At night",
+    "now": "Now",
+    "cream": "Cream",
+    "white": "White",
+    "sepia": "Sand",
+    "black": "Black",
+    "green": "Deep green"
+  },
+  "reading": "Reading",
+  "viewMode": {
+    "title": "Moving between pages",
+    "swipeHint": "A phone turns one page at a time; a computer opens the mushaf as a book of two pages.",
+    "scrollHint": "The pages follow one another as you scroll down, on a phone and a computer."
+  },
+  "pageTurn": {
+    "title": "Page-turn animation",
+    "hint": "The sheet turns over like the printed mushaf. Off: pages change at once."
+  },
+  "keepAwake": {
+    "title": "Keep the screen on",
+    "hint": "The screen stays on while the mushaf is open."
+  },
+  "listening": "Listening",
+  "reciter": "Reciter",
+  "followReciter": {
+    "title": "Follow the reciter",
+    "hint": "The mushaf turns to the page being recited."
+  },
+  "immersive": {
+    "title": "Hide the controls while reciting",
+    "hint": "On a phone only the ayat stay; a tap brings the controls back."
+  },
+  "language": "Language",
+  "device": "On this device",
+  "install": {
+    "title": "Install the mushaf",
+    "hint": "It opens from your home screen like an app and works offline.",
+    "iosHint": "In Safari, tap Share, then “Add to Home Screen”."
+  },
+  "about": {
+    "edition": "The Madinah mushaf · 1421H print",
+    "body": "Drawn with the King Fahd Complex's own page fonts, page by page as in the printed mushaf, unmodified. Open source and free, for everyone who serves the Book of Allah to put into their own site or app.",
+    "thanks": "With thanks to the King Fahd Complex, Tarteel (QUL), Quran.com, EveryAyah and the reciters.",
+    "source": "Source on GitHub"
+  },
+  "reset": "Default settings",
+  "done": "Done"
+}

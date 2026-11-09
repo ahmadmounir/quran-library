@@ -5,7 +5,13 @@ word by word, reciters' audio, Cloudflare hosting). **Read [AGENTS.md](AGENTS.md
 
 Working on this repository itself:
 
-- No build step. Run the example with any static server from the root: `npx serve .` → `/example/`.
+- The data, tools and guides need no build. The example (`example/`) is a Vite + React + Tailwind app — the mushaf
+  of the Hafiz platform without accounts or server: `cd example && npm install && npm run dev` (port 5175; it serves
+  `../data` at `/data`), and `npm run build` must pass. Audio for local tests: `VITE_AUDIO_BASE` in
+  `example/.env.local` (git-ignored), never in a file in git.
+- The example's look follows the Hafiz mushaf one to one; a change there should be carried over here (and the
+  reading rules in AGENTS.md §8.1 kept). The mark «صوت المصحف» is in `example/src/brand/` (copied numbers, not
+  generated here).
 - `data/` is the published data. Never modify the font files. The MP3s under `data/audio/<id>/` are build output
   (git-ignored); only `index.json` and `reciters.json` are committed.
 - Audio tools need Node 20+ and ffmpeg: `node tools/audio/build-reciter.mjs <id …|all>` downloads the recordings from

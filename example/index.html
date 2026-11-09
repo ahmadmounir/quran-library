@@ -1,46 +1,72 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d3429">
-  <title>المصحف — مثال</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="toolbar">
-    <!-- In a right-to-left page the first button sits on the right: "previous page" right, "next page" left. -->
-    <button id="prev" type="button" aria-label="الصفحة السابقة">›</button>
-    <select id="surah" aria-label="السورة"></select>
-    <input id="page-number" type="number" min="1" max="604" inputmode="numeric" aria-label="رقم الصفحة">
-    <button id="next" type="button" aria-label="الصفحة التالية">‹</button>
-  </header>
-
-  <main id="view" aria-live="polite"></main>
-
-  <div id="word-panel" class="word-panel" hidden>
-    <p id="word-text" class="word-text"></p>
-    <p id="word-where" class="word-where"></p>
-    <button id="word-play" type="button">▶ استمع من هذه الآية</button>
-  </div>
-
-  <footer id="player" class="player">
-    <select id="reciter" aria-label="القارئ"></select>
-    <!-- Reading order: the previous ayah on the right, the next on the left. -->
-    <button id="ayah-prev" type="button" aria-label="الآية السابقة">⏭</button>
-    <button id="play" type="button" class="play" aria-label="تشغيل / إيقاف">▶</button>
-    <button id="ayah-next" type="button" aria-label="الآية التالية">⏮</button>
-    <button id="stop" type="button" aria-label="إيقاف">■</button>
-    <span id="now" class="now"></span>
-    <select id="repeat" aria-label="تكرار كل آية">
-      <option value="1">×1</option><option value="2">×2</option><option value="3">×3</option>
-      <option value="5">×5</option><option value="0">∞</option>
-    </select>
-    <select id="speed" aria-label="السرعة">
-      <option value="0.75">0.75</option><option value="1">1</option><option value="1.25">1.25</option><option value="1.5">1.5</option>
-    </select>
-  </footer>
-
-  <script type="module" src="js/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>مكتبة القرآن — المصحف الشريف كما طُبع</title>
+    <meta
+      name="description"
+      content="The Madinah mushaf (1421H print) drawn with the King Fahd Complex page fonts: an open book on a computer, one page on a phone, eight reciters, offline. Open source."
+    />
+    <meta name="theme-color" content="#fbf6ea" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="المصحف" />
+    <link rel="icon" type="image/svg+xml" href="./icons/mark.svg" />
+    <link rel="apple-touch-icon" href="./icons/icon-180.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <script>
+      // The reader's day / night choice and page colour before anything is drawn (settings/store.ts does the same)
+      (function () {
+        var colors = { cream: "#fbf6ea", white: "#ffffff", sepia: "#f3e6c8", black: "#080808", green: "#0b1713" };
+        var s = {};
+        try {
+          s = JSON.parse(localStorage.getItem("quran-libary:settings") || "{}") || {};
+        } catch (e) {}
+        var theme = s.theme || "auto";
+        var dark = theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+        var root = document.documentElement;
+        if (dark) root.classList.add("dark");
+        root.style.colorScheme = dark ? "dark" : "light";
+        var paper = dark ? s.nightPaper || "black" : s.dayPaper || "cream";
+        root.dataset.paper = paper;
+        var lang = s.language || ((navigator.language || "ar").slice(0, 2));
+        if (lang !== "ar" && lang !== "en" && lang !== "tr") lang = "ar";
+        root.lang = lang;
+        root.dir = lang === "ar" ? "rtl" : "ltr";
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", colors[paper] || colors.cream);
+      })();
+    </script>
+    <style>
+      /* Until the app's code has loaded: the reciting bars «التلاوة» in the middle of the paper */
+      html { background: #f8f6f1; }
+      html.dark { background: #07110d; }
+      #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #boot rect { transform-box: fill-box; transform-origin: 50% 50%; animation: boot-recite 1.15s ease-in-out infinite; fill: #0f4a3a; }
+      #boot rect.spine { fill: #b69445; }
+      html.dark #boot rect { fill: #f3ecdc; }
+      html.dark #boot rect.spine { fill: #d4b061; }
+      @keyframes boot-recite { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.42); } }
+      @media (prefers-reduced-motion: reduce) { #boot rect { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot" aria-hidden="true">
+        <svg viewBox="-20 -65 385 385" width="64" height="64">
+          <rect x="0" y="18" width="24" height="154" rx="12" style="animation-delay: 0.48s" />
+          <rect x="40" y="0" width="24" height="184" rx="12" style="animation-delay: 0.36s" />
+          <rect x="80" y="10" width="24" height="186" rx="12" style="animation-delay: 0.24s" />
+          <rect x="120" y="36" width="24" height="170" rx="12" style="animation-delay: 0.12s" />
+          <rect class="spine" x="160" y="74" width="24" height="140" rx="12" />
+          <rect x="200" y="36" width="24" height="170" rx="12" style="animation-delay: 0.12s" />
+          <rect x="240" y="10" width="24" height="186" rx="12" style="animation-delay: 0.24s" />
+          <rect x="280" y="0" width="24" height="184" rx="12" style="animation-delay: 0.36s" />
+          <rect x="320" y="18" width="24" height="154" rx="12" style="animation-delay: 0.48s" />
+        </svg>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
