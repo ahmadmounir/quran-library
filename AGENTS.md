@@ -79,7 +79,7 @@ type Page = { page: number; script: "qcf-v2"; lines: Line[] };
 - A page needs: its own font; page 1's font if it has a `basmala` line; the header font if it has a `header` line.
 - Queue: nearest page to the reader first, at most **2** concurrent, pages farther than **1** from the reader wait.
 - Keep at most **24** fonts registered (LRU); `document.fonts.delete` the evicted ones.
-- A font already in the cache (`quran-libary-fonts-v1`) is read from it as an `ArrayBuffer`: no request.
+- A font already in the cache (`quran-library-fonts-v1`) is read from it as an `ArrayBuffer`: no request.
 - Copy `example/src/mushaf/utils/mushafFonts.ts` rather than rewriting it (the open book asks for a radius of 3).
 
 ## 5. Audio (must follow)

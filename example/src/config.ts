@@ -12,4 +12,4 @@ export const FILES_BASE = trim(import.meta.env.VITE_FILES_BASE || `${import.meta
 export const AUDIO_BASE = trim(import.meta.env.VITE_AUDIO_BASE || `${FILES_BASE}/audio`);
 
 /** The repository, for the "about" row of the settings */
-export const REPOSITORY_URL = "https://github.com/ahmadmounir/quran-libary";
+export const REPOSITORY_URL = "https://github.com/ahmadmounir/quran-library";

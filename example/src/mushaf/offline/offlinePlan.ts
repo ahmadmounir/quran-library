@@ -9,8 +9,8 @@ import { FONTS_CACHE, SURAH_HEADER_FONT_URL, pageFontUrl } from "../utils/mushaf
 export { FONTS_CACHE };
 
 // The service worker's caches: public/sw.js names them the same way (a unit test checks it).
-export const APP_CACHE = "quran-libary-app";
-export const DATA_CACHE = "quran-libary-data-v1";
+export const APP_CACHE = "quran-library-app";
+export const DATA_CACHE = "quran-library-data-v1";
 
 // Average sizes as kept on the device (the 605 fonts are 93 MB, the 604 page files 8.7 MB)
 const FONT_BYTES = 154_000;

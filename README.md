@@ -73,8 +73,8 @@
 You need Node 20 or newer.
 
 ```bash
-git clone https://github.com/ahmadmounir/quran-libary.git
-cd quran-libary/example
+git clone https://github.com/ahmadmounir/quran-library.git
+cd quran-library/example
 npm install
 npm run dev
 ```
@@ -116,7 +116,7 @@ The audio files themselves (6.2 GB for eight reciters) are not in git; the tools
 
 Open your own project in Claude Code (or any coding agent), make this repository available to it, and ask:
 
-> Add the mushaf to my app following quran-libary/AGENTS.md
+> Add the mushaf to my app following quran-library/AGENTS.md
 
 With Claude Code you can also copy `skills/quran-mushaf/` into your project's `.claude/skills/`.
 

@@ -1,11 +1,11 @@
 ---
 name: quran-mushaf
-description: Add a Quran mushaf to an app the way Quran.com / Tarteel show it — the 1421H Madinah print drawn with the King Fahd Complex page fonts (QCF V2), word by word, with eight reciters in sync, offline caching and free Cloudflare R2 + Worker hosting — using the data and reference code of github.com/ahmadmounir/quran-libary. Use when the user asks for a mushaf, Quran pages, word-by-word Quran, a Quran audio player synced with the text, or hosting Quran fonts / audio.
+description: Add a Quran mushaf to an app the way Quran.com / Tarteel show it — the 1421H Madinah print drawn with the King Fahd Complex page fonts (QCF V2), word by word, with eight reciters in sync, offline caching and free Cloudflare R2 + Worker hosting — using the data and reference code of github.com/ahmadmounir/quran-library. Use when the user asks for a mushaf, Quran pages, word-by-word Quran, a Quran audio player synced with the text, or hosting Quran fonts / audio.
 ---
 
 # Quran mushaf
 
-Build the mushaf from the quran-libary repository. Its `AGENTS.md` is the full specification; this skill is the
+Build the mushaf from the quran-library repository. Its `AGENTS.md` is the full specification; this skill is the
 order of work.
 
 ## 1. Get the repository
@@ -13,10 +13,10 @@ order of work.
 If it is not in the workspace yet:
 
 ```bash
-git clone https://github.com/ahmadmounir/quran-libary.git
+git clone https://github.com/ahmadmounir/quran-library.git
 ```
 
-Read `quran-libary/AGENTS.md` completely before writing code, then look at `example/src/` (the reference app: the
+Read `quran-library/AGENTS.md` completely before writing code, then look at `example/src/` (the reference app: the
 mushaf of the Hafiz platform, React + Vite; §1 of AGENTS.md lists its framework-free modules).
 
 ## 2. Ask only what you cannot decide

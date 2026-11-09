@@ -22,7 +22,7 @@
         var colors = { cream: "#fbf6ea", white: "#ffffff", sepia: "#f3e6c8", black: "#080808", green: "#0b1713" };
         var s = {};
         try {
-          s = JSON.parse(localStorage.getItem("quran-libary:settings") || "{}") || {};
+          s = JSON.parse(localStorage.getItem("quran-library:settings") || "{}") || {};
         } catch (e) {}
         var theme = s.theme || "auto";
         var dark = theme === "dark" || (theme === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);

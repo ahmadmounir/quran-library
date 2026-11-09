@@ -86,7 +86,7 @@ const ROW = "flex w-full items-center gap-3 px-3.5 py-3 text-start";
 const ROW_ICON = "flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary";
 
 /**
- * The reader's settings — new in quran-libary (the Hafiz app keeps them elsewhere): day / night / automatic, the
+ * The reader's settings — new in quran-library (the Hafiz app keeps them elsewhere): day / night / automatic, the
  * page's colour by day and by night, how a phone moves between pages, the page-turn animation, keeping the screen
  * on, the reciter, following the reciter, the language, the mushaf on this device, installing the app, and where it
  * all comes from. Everything is kept on this device (settings/store.ts). A bottom sheet on a phone, a dialog on a

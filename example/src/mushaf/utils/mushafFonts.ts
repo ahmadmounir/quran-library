@@ -10,7 +10,7 @@ import { TOTAL_PAGES } from "@/lib/quranData";
 const FONTS_BASE = `${FILES_BASE}/fonts`;
 
 /** Where this device keeps the page fonts: public/sw.js and the offline download use the same cache. */
-export const FONTS_CACHE = "quran-libary-fonts-v1";
+export const FONTS_CACHE = "quran-library-fonts-v1";
 
 /**
  * A font kept on this device, read straight from its cache: no request at all, online or not, even when the service

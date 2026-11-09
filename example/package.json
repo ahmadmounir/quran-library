@@ -1,9 +1,9 @@
 {
-  "name": "quran-libary-example",
+  "name": "quran-library-example",
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "The quran-libary mushaf: the 1421H Madinah print with the King Fahd Complex page fonts, an open book on a wide screen, reciters, offline.",
+  "description": "The quran-library mushaf: the 1421H Madinah print with the King Fahd Complex page fonts, an open book on a wide screen, reciters, offline.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

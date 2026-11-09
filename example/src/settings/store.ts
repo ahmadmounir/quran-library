@@ -30,7 +30,7 @@ export interface ReaderSettings {
   immersiveListening: boolean;
 }
 
-export const SETTINGS_KEY = "quran-libary:settings";
+export const SETTINGS_KEY = "quran-library:settings";
 export const LANGUAGES: Language[] = ["ar", "en", "tr"];
 export const DAY_PAPERS: DayPaper[] = ["cream", "white", "sepia"];
 export const NIGHT_PAPERS: NightPaper[] = ["black", "green"];

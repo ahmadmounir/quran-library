@@ -73,8 +73,8 @@
 Node 20 veya üstü gerekir.
 
 ```bash
-git clone https://github.com/ahmadmounir/quran-libary.git
-cd quran-libary/example
+git clone https://github.com/ahmadmounir/quran-library.git
+cd quran-library/example
 npm install
 npm run dev
 ```
@@ -117,7 +117,7 @@ Ses dosyalarının kendisi (sekiz kâri için 6,2 GB) git'te yok; araçlar onlar
 Kendi projenizi Claude Code'da (ya da herhangi bir kodlama ajanında) açın, bu depoyu ona erişilebilir kılın ve şunu
 isteyin:
 
-> Mushafı quran-libary/AGENTS.md'yi izleyerek uygulamama ekle
+> Mushafı quran-library/AGENTS.md'yi izleyerek uygulamama ekle
 
 Claude Code ile `skills/quran-mushaf/` klasörünü projenizin `.claude/skills/` klasörüne de kopyalayabilirsiniz.
 

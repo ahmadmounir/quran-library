@@ -1,5 +1,5 @@
 /*
- * The service worker of the quran-libary mushaf (registered by src/main.tsx in a production build only).
+ * The service worker of the quran-library mushaf (registered by src/main.tsx in a production build only).
  *
  * - The app's page: the network first, the last copy when offline, so a new deploy shows at once.
  * - The app's built files (assets/…, hashed names): from the device once kept.
@@ -13,10 +13,10 @@
  *
  * The cache names must match src/mushaf/offline/offlinePlan.ts and src/mushaf/utils/mushafFonts.ts.
  */
-const APP_CACHE = "quran-libary-app";
-const DATA_CACHE = "quran-libary-data-v1";
-const FONTS_CACHE = "quran-libary-fonts-v1";
-const TYPEFACE_CACHE = "quran-libary-typeface";
+const APP_CACHE = "quran-library-app";
+const DATA_CACHE = "quran-library-data-v1";
+const FONTS_CACHE = "quran-library-fonts-v1";
+const TYPEFACE_CACHE = "quran-library-typeface";
 const CURRENT_CACHES = [APP_CACHE, DATA_CACHE, FONTS_CACHE, TYPEFACE_CACHE];
 /** Built files kept at most: the oldest (earlier builds') go first */
 const MAX_ASSETS = 120;
@@ -44,7 +44,7 @@ self.addEventListener("activate", (event) => {
       const names = await caches.keys();
       await Promise.all(
         names
-          .filter((name) => name.startsWith("quran-libary-") && !CURRENT_CACHES.includes(name))
+          .filter((name) => name.startsWith("quran-library-") && !CURRENT_CACHES.includes(name))
           .map((name) => caches.delete(name)),
       );
       await self.clients.claim();

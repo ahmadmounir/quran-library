@@ -16,7 +16,7 @@ export interface AudioSettings extends PlayerOptions {
   reciterId: string;
 }
 
-const SETTINGS_KEY = "quran-libary:audio";
+const SETTINGS_KEY = "quran-library:audio";
 const DEFAULT_SETTINGS: AudioSettings = { reciterId: "husary", rate: 1, repeatAyah: 1, repeatRange: 1 };
 
 // A per-browser convenience: losing it only brings the defaults back.

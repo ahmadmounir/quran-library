@@ -13,7 +13,7 @@ export interface PageBookmark {
   savedAt: number;
 }
 
-const STORE_KEY = "quran-libary:bookmarks";
+const STORE_KEY = "quran-library:bookmarks";
 
 const isPage = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= TOTAL_PAGES;

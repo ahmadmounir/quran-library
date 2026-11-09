@@ -38,9 +38,9 @@ export async function keepFile(file: OfflineFile, signal: AbortSignal): Promise<
 }
 
 // What this device remembers about the whole-mushaf download
-const WANTED_KEY = "quran-libary:mushaf-wanted";
-const UPDATE_EVERY_KEY = "quran-libary:mushaf-update-every";
-const CHECKED_AT_KEY = "quran-libary:mushaf-checked-at";
+const WANTED_KEY = "quran-library:mushaf-wanted";
+const UPDATE_EVERY_KEY = "quran-library:mushaf-update-every";
+const CHECKED_AT_KEY = "quran-library:mushaf-checked-at";
 
 const readKey = (key: string): string | null => {
   try {

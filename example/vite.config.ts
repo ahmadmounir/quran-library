@@ -12,7 +12,7 @@ import sirv from "sirv";
 function repositoryData(): Plugin {
   const serve = sirv(path.resolve(__dirname, "../data"), { dev: true, etag: true });
   return {
-    name: "quran-libary-data",
+    name: "quran-library-data",
     configureServer(server) {
       server.middlewares.use("/data", serve);
     },

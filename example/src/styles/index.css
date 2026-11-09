@@ -1,5 +1,5 @@
 /*
- * The quran-libary mushaf: the same look as the mushaf of the Hafiz app (its stylesheet, trimmed to the mushaf), with
+ * The quran-library mushaf: the same look as the mushaf of the Hafiz app (its stylesheet, trimmed to the mushaf), with
  * the reader's settings on top: day / night (`.dark` on <html>) and the page colour (`data-paper` on <html>).
  * Every colour of the page itself comes from the --mushaf-* variables below, so a new page colour is one block.
  */

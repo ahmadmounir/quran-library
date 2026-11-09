@@ -45,7 +45,7 @@ const FLASH_DURATION_MS = 2600;
 const AYAH_PRESS_MS = 450;
 
 /** localStorage key holding the last visited page (resume position) */
-const LAST_PAGE_KEY = "quran-libary:last-page";
+const LAST_PAGE_KEY = "quran-library:last-page";
 
 const readLastPage = (): number | null => {
   try {

@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n";
 
 /** A change of network counts only once it has lasted this long (a flicker says nothing) */
 const SETTLE_MS = 1500;
-const TOAST_ID = "quran-libary-network";
+const TOAST_ID = "quran-library-network";
 
 /**
  * "No internet" / "back online", as in the Hafiz app: one toast at a time, never the same twice in a row, "back online"

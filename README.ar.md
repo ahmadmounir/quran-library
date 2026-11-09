@@ -72,8 +72,8 @@
 تحتاج إلى Node 20 أو أحدث.
 
 ```bash
-git clone https://github.com/ahmadmounir/quran-libary.git
-cd quran-libary/example
+git clone https://github.com/ahmadmounir/quran-library.git
+cd quran-library/example
 npm install
 npm run dev
 ```
@@ -115,7 +115,7 @@ node tools/audio/build-reciter.mjs husary    # أو عدة قراء، أو: all 
 
 افتح مشروعك في Claude Code (أو أي وكيل برمجة آخر)، واجعل هذا المستودع متاحاً له، ثم اطلب:
 
-> أضف المصحف إلى تطبيقي باتباع quran-libary/AGENTS.md
+> أضف المصحف إلى تطبيقي باتباع quran-library/AGENTS.md
 
 ومع Claude Code يمكنك أيضاً نسخ `skills/quran-mushaf/` إلى `.claude/skills/` في مشروعك.
 
