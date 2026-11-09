@@ -701,11 +701,15 @@
 
 /* The print's ornamental frame with «سورة …» inside: one glyph, 3.302em wide and
    0.4em high, sized to the full line width (100cqw) like the ayat. Gold like the
-   page's margin furniture. */
+   page's margin furniture.
+   The glyph's box is a whole em high (2.5× what is drawn), so it reaches over the
+   line above and the basmala below, and it comes after them on the page: it must
+   never take a tap, or a long press on a word of the line above never reaches it. */
 .mushaf-surah-frame {
   font-size: calc(100cqw / 3.302);
   line-height: 1;
   color: var(--mushaf-gold);
+  pointer-events: none;
 }
 
 /* Drawn with Al-Fatihah's own basmala glyphs (page 1's font) */

@@ -246,7 +246,8 @@ az 1.8 em düşer).
 üstündeki ve altındaki işaretler satır kutusunun dışına taşar.
 
 - Sure başlığı: `font-size: calc(100cqw / 3.302)` — çerçeve glifi 3.302 em genişliğindedir, böylece sayfanın
-  genişliğini doldurur.
+  genişliğini doldurur. Ona `pointer-events: none` verin: glif 0.4 em yüksekliğinde çizilir ama kutusu tam bir em'dir;
+  üstteki satırın üzerine taşar ve o satırın kelimelerine yapılan dokunuşları alır.
 - Besmele satırı: ortalanmış, `font-size: var(--qcf-size)`, `fontPage` sayfasının fontuyla çizilir.
 - Sayfa 1–2: satırlar ortalanmış ve 1.3× daha büyük.
 

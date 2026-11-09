@@ -242,6 +242,8 @@ The second limit keeps 15 lines from touching each other on short, wide screens 
 below the letters go beyond the line box.
 
 - Surah header: `font-size: calc(100cqw / 3.302)` — the frame glyph is 3.302 em wide, so it fills the page's width.
+  Give it `pointer-events: none`: the glyph is drawn 0.4 em high but its box is a whole em, so it reaches over the line
+  above and would take the taps meant for that line's words.
 - Basmala line: centered, `font-size: var(--qcf-size)`, drawn with page `fontPage`'s font.
 - Pages 1–2: lines centered and 1.3× larger.
 

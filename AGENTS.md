@@ -68,7 +68,8 @@ type Page = { page: number; script: "qcf-v2"; lines: Line[] };
    line-height: 1.5; overflow: visible`. Centered line: `justify-content: center; column-gap: 0.25em`.
 5. Pages 1–2 (`page <= 2`): body centered with `gap: 0.4em`, lines centered, `font-size: calc(var(--qcf-size) * 1.3)`.
 6. Surah header: block of height `12.2cqw`, glyph `surahHeaderGlyph(surah)` in the header font,
-   `font-size: calc(100cqw / 3.302)`, `line-height: 1`.
+   `font-size: calc(100cqw / 3.302)`, `line-height: 1`, `pointer-events: none` (the glyph is drawn 0.4em high but its
+   box is a whole em: it reaches over the line above and would take the taps meant for its words).
 7. After the page is in the DOM, run the line fit: for each line, `ratio = Σ word widths (+ gaps) / line width`; if
    `ratio > 1`, `font-size = currentSize × 0.99 / ratio` on that line only. Re-run on resize.
 8. Never show `g` in a fallback font: render a placeholder (15 grey bars) until the page's fonts are loaded.
